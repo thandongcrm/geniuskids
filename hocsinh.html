@@ -22,7 +22,33 @@
   
   // Gắn ra window để các hàm bên dưới gọi được
   window.db = db;
+    window.FirestoreDeps = { doc, getDoc, setDoc };
   console.log("Firebase đã sẵn sàng kết nối!");
+   async function syncCloudDataToLocal() {
+    if (window.db && window.FirestoreDeps) {
+        try {
+            const { doc, getDoc } = window.FirestoreDeps;
+            const keys = ['hocSinhList', 'giaoVienList', 'lopHocList', 'tkbList', 'diemDanhList', 'phongHocList', 'thuTienGiaoDichList', 'bankAccounts', 'lockPeriodsList'];
+            
+            for (let key of keys) {
+                const snap = await getDoc(doc(window.db, "systemData", key));
+                if (snap.exists() && snap.data().payload) {
+                    localStorage.setItem(key, snap.data().payload);
+                }
+            }
+            console.log("Đã đồng bộ toàn bộ dữ liệu từ đám mây thành công!");
+        } catch (e) {
+            console.error("Lỗi tải dữ liệu từ mây:", e);
+        }
+    }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await syncCloudDataToLocal();
+    if (typeof initMyData === 'function') initMyData();
+    if (typeof renderTKBGrid === 'function') renderTKBGrid();
+    if (typeof renderFeeReport === 'function') renderFeeReport();
+}); 
 </script>    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
