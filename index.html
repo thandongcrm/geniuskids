@@ -23,7 +23,8 @@
   // Gắn ra window để các hàm bên dưới gọi được
   window.db = db;
   console.log("Firebase đã sẵn sàng kết nối!");
-</script>    <!-- Google Fonts -->
+</script>
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -412,9 +413,20 @@ async function syncCloudDataToLocal() {
     }
 }
 
-// Tự động tải dữ liệu đám mây ngay khi trang đăng nhập vừa load
+// Tự động tải và ĐỢI đồng bộ dữ liệu đám mây xong hoàn toàn mới mở khóa nút đăng nhập
 window.addEventListener('DOMContentLoaded', async () => {
+    const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+    if(submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang đồng bộ dữ liệu từ mây...';
+    }
+
     await syncCloudDataToLocal();
+
+    if(submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket me-2"></i>ĐĂNG NHẬP NGAY';
+    }
 });
 
 // Lấy toàn bộ danh sách tài khoản hợp lệ
