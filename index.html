@@ -6,7 +6,7 @@
     <title>CRM GENIUS KIDS L.C - Hệ thống quản lý trung tâm Thần Đồng</title>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAUBJuv76X2GbhEGgGUat2O_g9rX5Bb0nA",
@@ -20,8 +20,8 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   
-  // Gắn ra window để các hàm bên dưới gọi được
   window.db = db;
+window.FirestoreDeps = { doc, getDoc, setDoc };
   console.log("Firebase đã sẵn sàng kết nối!");
 </script>
     <!-- Google Fonts -->
