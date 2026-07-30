@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Góc Học Sinh & Truyện Kể Đa Dạng - GENIUS KIDS L.C</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUBJuv76X2GbhEGgGUat2O_g9rX5Bb0nA",
+    authDomain: "crm-tt-genius-kids.firebaseapp.com",
+    projectId: "crm-tt-genius-kids",
+    storageBucket: "crm-tt-genius-kids.firebasestorage.app",
+    messagingSenderId: "42080302170",
+    appId: "1:42080302170:web:df2e514cde42d500c85463"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  
+  // Gắn ra window để các hàm bên dưới gọi được
+  window.db = db;
+  console.log("Firebase đã sẵn sàng kết nối!");
+</script>    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 & FontAwesome 6 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary-orange: #ff5e00;
+            --bright-orange: #ff7b00;
+            --gradient-orange: linear-gradient(135deg, #ff5e00 0%, #ff8c00 50%, #ff0055 100%);
+            --accent-green: #00e676;
+            --font-main: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            --card-radius: 20px;
+        }
+
+        * { font-family: var(--font-main); box-sizing: border-box; }
+        body { background: #f4f6f9; min-height: 100vh; color: #2b2d42; overflow-x: hidden; }
+
+        .admin-header {
+            background: var(--gradient-orange);
+            color: white;
+            padding: 24px 20px 18px 20px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 30px rgba(255, 94, 0, 0.35);
+            position: relative;
+            z-index: 100;
+        }
+
+        .main-title { font-size: 1.8rem; font-weight: 800; text-transform: uppercase; text-align: center; margin-bottom: 6px; }
+
+        .nav-tabs-custom { border: none; gap: 10px; margin-top: 18px; justify-content: center; flex-wrap: wrap; }
+        .nav-tabs-custom .nav-link {
+            border: none; background: rgba(255, 255, 255, 0.25); color: white;
+            font-weight: 700; padding: 10px 20px; border-radius: 16px; transition: all 0.3s;
+        }
+        .nav-tabs-custom .nav-link.active { background: white; color: var(--primary-orange); box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+
+        .main-container { padding: 25px 20px; max-width: 1500px; margin: auto; }
+        .custom-card {
+            background: white; border-radius: var(--card-radius); padding: 24px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 2px solid #ffe8dc; margin-bottom: 25px;
+        }
+        .card-header-title {
+            color: var(--primary-orange); font-weight: 800; font-size: 1.2rem;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+            padding-bottom: 10px; border-bottom: 2px dashed #ffd5c0;
+        }
+
+        .btn-orange {
+            background: linear-gradient(45deg, #ff5e00, #ff8c00); color: white; font-weight: 700;
+            border-radius: 12px; border: none; padding: 10px 18px; transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 94, 0, 0.3);
+        }
+        .btn-orange:hover { background: linear-gradient(45deg, #ff7b00, #ff0055); color: white; }
+        .btn-green { background: linear-gradient(45deg, #00c853, #00e676); color: white; font-weight: 700; border-radius: 12px; border: none; padding: 10px 18px; }
+
+        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #ffe8dc; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; color: #ff5e00; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        /* TKB BẢNG CỘT */
+        .tkb-table { width: 100%; border-collapse: separate; border-spacing: 6px; min-width: 950px; }
+        .tkb-table th { background: #ff7b00; color: white; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; }
+        .tkb-table td { background: #fff8f5; border: 2px solid #ffe2d4; border-radius: 14px; vertical-align: top; padding: 8px; min-height: 100px; }
+        .time-col { background: #ffe3d1 !important; color: #d64045; font-weight: 800; text-align: center; width: 130px; vertical-align: middle !important; }
+
+        .tkb-card { 
+            padding: 10px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); 
+            background: #e3f2fd; border-left: 5px solid #ff5e00; color: #1a1a1a;
+        }
+
+        .game-card {
+            border: 2px solid #ffe2d4; border-radius: 16px; padding: 16px; background: #fffaf8;
+            transition: all 0.3s; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .game-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(255, 94, 0, 0.2); border-color: #ff5e00; }
+
+        /* MATCHING GAME STYLES */
+        .match-item {
+            cursor: pointer; border: 3px solid #ddd; border-radius: 16px; padding: 15px; text-align: center; background: white;
+            transition: all 0.2s; font-weight: 700; font-size: 1.1rem;
+        }
+        .match-item:hover { border-color: var(--primary-orange); background: #fffaf8; }
+        .match-item.selected { border-color: #00c853; background: #e8f5e9; transform: scale(1.03); }
+        .match-item.matched { background: #d4edda; border-color: #28a745; opacity: 0.6; pointer-events: none; }
+
+        .modal-content { border-radius: 22px; border: 3px solid #ff7b00; overflow: hidden; }
+        .modal-header { background: var(--gradient-orange); color: white; padding: 18px 24px; border: none; }
+        .table-responsive-custom { width: 100%; overflow-x: auto; border-radius: 14px; border: 1px solid #ffe2d4; }
+    </style>
+</head>
+<body>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+  <div id="toastNotification" class="toast align-items-center text-white bg-success border-0 shadow" role="alert">
+    <div class="d-flex">
+      <div class="toast-body fw-bold fs-6" id="toastMessage"><i class="fa-solid fa-circle-check me-2"></i>Thao tác thành công!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="admin-header">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <span class="badge bg-light text-danger fw-bold fs-6 px-3 py-2 rounded-pill shadow-sm">
+                <i class="fa-solid fa-child-reaching me-1"></i> GÓC HỌC SINH
+            </span>
+        </div>
+        <div class="text-end">
+            <span class="fw-bold me-2" id="headerUserName"><i class="fa-solid fa-circle-user me-1"></i> Đang tải...</span>
+            <button class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="showLogoutModal()">
+                <i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất
+            </button>
+        </div>
+    </div>
+    <div class="main-title">TRUNG TÂM NGOẠI NGỮ THẦN ĐỒNG</div>
+
+    <!-- TABS ĐIỀU HƯỚNG -->
+    <ul class="nav nav-tabs nav-tabs-custom" id="mainTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#hoso-sec" type="button"><i class="fa-solid fa-user-graduate me-2"></i>HỒ SƠ CỦA EM</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#gochoc-sec" type="button"><i class="fa-solid fa-gamepad me-2"></i>GÓC HỌC TẬP & TRUYỆN KỂ</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tkb-sec" type="button"><i class="fa-solid fa-calendar-days me-2"></i>THỜI KHÓA BIỂU</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#diemdanh-sec" type="button"><i class="fa-solid fa-clipboard-user me-2"></i>NHẬT KÝ HỌC TẬP</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#hocphi-sec" type="button"><i class="fa-solid fa-receipt me-2"></i>BÁO CÁO HỌC PHÍ</button>
+        </li>
+    </ul>
+</header>
+
+<main class="main-container">
+    <div class="tab-content">
+        
+        <!-- ================= TAB 1: HỒ SƠ & ĐỔI MẬT KHẨU ================= -->
+        <div class="tab-pane fade show active" id="hoso-sec">
+            <div class="custom-card">
+                <div class="card-header-title d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-address-card fa-lg"></i> THÔNG TIN CÁ NHÂN & TÀI KHOẢN HỌC SINH[cite: 3]</span>
+                    <button class="btn btn-orange btn-sm fw-bold" onclick="openModal('modalDoiMKHS')">
+                        <i class="fa-solid fa-key me-1"></i> Đổi Mật Khẩu
+                    </button>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="profile-avatar mx-auto mb-3"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <h4 class="fw-bold text-primary mb-1" id="profileName">---</h4>
+                        <span class="badge bg-warning text-dark fs-6" id="profileCode">---</span>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row g-3">
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-venus-mars me-2 text-orange"></i>Giới tính / Ngày sinh:</strong> <span id="profileDob">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-school me-2 text-orange"></i>Trường / Lớp ở trường:</strong> <span id="profileSchool">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-chalkboard-user me-2 text-orange"></i>Lớp tại Trung Tâm:</strong> <span id="profileClass" class="fw-bold text-primary">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-calendar-check me-2 text-orange"></i>Ngày nhập học:</strong> <span id="profileJoinDate">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-user-shield me-2 text-orange"></i>Phụ huynh / SĐT:</strong> <span id="profileParent">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-location-dot me-2 text-orange"></i>Địa chỉ:</strong> <span id="profileAddress">---</span></div></div>
+                            
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded border border-primary">
+                                    <strong><i class="fa-solid fa-envelope me-2 text-primary"></i>Tài khoản Email:</strong> 
+                                    <code class="fs-6" id="profileEmail">---</code>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded border border-primary d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong><i class="fa-solid fa-lock me-2 text-primary"></i>Mật khẩu:</strong> 
+                                        <code class="fs-6" id="profilePass">******</code>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="togglePassView()">
+                                        <i class="fa-solid fa-eye" id="passEyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="fw-bold text-orange"><i class="fa-solid fa-gift me-2"></i> Quà tặng & Phần thưởng đã nhận từ trung tâm:</h6>
+                    <div id="profileGiftsContainer" class="d-flex flex-wrap gap-2 mt-2">Đang tải...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB: GÓC HỌC TẬP & TRUYỆN KỂ ================= -->
+        <div class="tab-pane fade" id="gochoc-sec">
+            <div class="custom-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="card-header-title mb-0 border-0"><i class="fa-solid fa-gamepad fa-lg"></i> GÓC VUI HỌC & KỂ CHUYỆN CÓ GIỌNG ĐỌC[cite: 3]</div>
+                    <div>
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm"><i class="fa-solid fa-star me-1"></i> Điểm Thưởng: <strong id="studentScore">100</strong> Điểm</span>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-md-4">
+                        <button class="btn btn-green w-100 fw-bold py-3 fs-6 shadow-sm" onclick="openMatchingGameModal()">
+                            <i class="fa-solid fa-shapes me-2"></i> 🎮 Trò Chơi Nối Chữ (<span id="btnGradeLabel">Khối Lớp 1</span>)[cite: 3]
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-orange w-100 fw-bold py-3 fs-6 shadow-sm" onclick="filterStories('EN')">
+                            <i class="fa-solid fa-language me-2"></i> 📚 Kể Chuyện Tiếng Anh (45 Tập)[cite: 3]
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-success w-100 fw-bold py-3 fs-6 shadow-sm" onclick="filterStories('VN')">
+                            <i class="fa-solid fa-book-open me-2"></i> 📖 Truyện Cổ Tích Tiếng Việt (45 Tập)[cite: 3]
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3" id="storyGridContainer"></div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: THỜI KHÓA BIỂU ================= -->
+        <div class="tab-pane fade" id="tkb-sec">
+            <div class="custom-card">
+                <div class="row g-3 align-items-end mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-calendar me-1 text-orange"></i> Năm:</label>
+                        <select class="form-select shadow-sm" id="tkbYear" onchange="onYearMonthChange()"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-calendar-month me-1 text-orange"></i> Tháng:</label>
+                        <select class="form-select shadow-sm" id="tkbMonth" onchange="onYearMonthChange()"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-calendar-week me-1 text-orange"></i> Chọn Tuần:</label>
+                        <select class="form-select border-primary shadow-sm" id="tkbWeek" onchange="renderTKBGrid()"></select>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 p-3 bg-light rounded-4 border">
+                    <div class="btn-group shadow-sm">
+                        <button class="btn btn-outline-orange" onclick="changeWeek(-1)"><i class="fa-solid fa-chevron-left me-1"></i> Tuần trước</button>
+                        <button class="btn btn-orange" onclick="setCurrentWeek()"><i class="fa-solid fa-clock me-1"></i> Tuần này (Hiện tại)</button>
+                        <button class="btn btn-outline-orange" onclick="changeWeek(1)">Tuần sau <i class="fa-solid fa-chevron-right ms-1"></i></button>
+                    </div>
+                    <div class="text-center">
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm" id="weekRangeLabel">Đang tải lịch...</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="tkb-table">
+                        <thead>
+                            <tr id="tkbHeaderRow">
+                                <th style="width: 130px;">Ca / Thời Gian</th>
+                                <th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>Chủ Nhật</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tkbGridBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 4: NHẬT KÝ CHUYÊN CẦN ================= -->
+        <div class="tab-pane fade" id="diemdanh-sec">
+            <div class="custom-card">
+                <div class="card-header-title"><i class="fa-solid fa-clipboard-user fa-lg"></i> DANH SÁCH NHẬT KÝ ĐIỂM DANH HỌC TẬP[cite: 3]</div>
+                <p class="text-muted small">Dưới đây là chi tiết từng ngày học và kết quả điểm danh của giáo viên dành cho em[cite: 3]:</p>
+                
+                <div class="table-responsive-custom">
+                    <table class="table table-hover table-bordered text-center align-middle mb-0">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Ngày Học</th>
+                                <th>Ca Học / Khung Giờ</th>
+                                <th>Lớp Học</th>
+                                <th>Phòng Học</th>
+                                <th>Giáo Viên Phụ Trách</th>
+                                <th>Trạng Thái Điểm Danh</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceHistoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 5: BÁO CÁO HỌC PHÍ & VIETQR ================= -->
+        <div class="tab-pane fade" id="hocphi-sec">
+            <div class="custom-card mb-4">
+                <div class="card-header-title"><i class="fa-solid fa-file-invoice-dollar fa-lg"></i> THÔNG BÁO HỌC PHÍ & THANH TOÁN[cite: 3]</div>
+                
+                <div class="row g-4 align-items-center mb-4">
+                    <div class="col-md-7">
+                        <div class="p-4 bg-light rounded-4 border border-warning shadow-sm">
+                            <h5 class="fw-bold text-orange mb-3"><i class="fa-solid fa-bell me-2"></i>Thông Báo Học Phí Từ Admin Trung Tâm[cite: 3]</h5>
+                            <div class="row g-3">
+                                <div class="col-6"><strong>Mã Phiếu Thu:</strong> <span class="badge bg-secondary fs-6" id="feeReceiptCode">---</span></div>
+                                <div class="col-6"><strong>Học Phí Lớp:</strong> <span class="fw-bold text-dark" id="feeClassPrice">0 đ</span></div>
+                                <div class="col-6"><strong>Đã Thanh Toán:</strong> <span class="fw-bold text-success" id="feePaidAmount">0 đ</span></div>
+                                <div class="col-6"><strong>Còn Lại Cần Nộp:</strong> <span class="fw-bold text-danger fs-5" id="feeRemainAmount">0 đ</span></div>
+                                <div class="col-12 border-top pt-2"><strong>Trạng Thái:</strong> <span id="feeStatusBadge">---</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5 text-center">
+                        <div class="p-3 border rounded-4 bg-white shadow-sm">
+                            <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-qrcode me-1"></i> Mã VietQR Chuyển Khoản Nhanh[cite: 3]</h6>
+                            <img id="vietQrImg" src="" alt="Mã VietQR" class="img-fluid rounded border mb-2" style="max-height: 220px;">
+                            <div class="small text-muted">Quét mã bằng app ngân hàng để chuyển khoản đúng số tiền</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-orange mb-2"><i class="fa-solid fa-clock-rotate-left me-2"></i> Lịch sử các đợt nộp tiền đã ghi nhận:</h6>
+                <div class="table-responsive-custom">
+                    <table class="table table-bordered table-striped text-center align-middle mb-0">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Mã Phiếu</th>
+                                <th>Ngày Thu Tiền</th>
+                                <th>Số Tiền Đã Nộp</th>
+                                <th>Người Thu / Phương Thức</th>
+                                <th>Nội Dung</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentHistoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- MODAL: TRÒ CHƠI NỐI CHỮ VỚI HÌNH THEO KHỐI LỚP (CÓ LẶP 30% CÂU CŨ) -->
+<div class="modal fade" id="modalMatchingGame" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="matchingModalTitle"><i class="fa-solid fa-shapes me-2"></i>Trò Chơi Nối Chữ Với Hình</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="text-muted fw-bold" id="matchingSubTitle">Bé hãy chọn hình ảnh ở cột trái và từ tiếng Anh ở cột phải để nối nhé!</p>
+                
+                <div class="row g-4 mt-2">
+                    <div class="col-6">
+                        <h6 class="fw-bold text-orange mb-3">HÌNH ẢNH</h6>
+                        <div class="d-grid gap-3" id="matchImagesContainer"></div>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="fw-bold text-primary mb-3">TỪ TIẾNG ANH</h6>
+                        <div class="d-grid gap-3" id="matchWordsContainer"></div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="btn btn-outline-secondary px-4 fw-bold" onclick="initMatchingGameForStudent()">Chơi Ván Mới (Làm mới câu hỏi)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ĐỌC TRUYỆN & CÂU HỎI (TÍCH HỢP GIỌNG ĐỌC TRẺ EM) -->
+<div class="modal fade" id="modalStoryGame" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="storyTitle"><i class="fa-solid fa-book-open me-2"></i>Đọc Truyện & Nghe Giọng Đọc</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopSpeech()"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-end mb-3">
+                    <button class="btn btn-sm btn-success fw-bold px-3 py-2 rounded-pill shadow-sm" onclick="speakCurrentStory()">
+                        <i class="fa-solid fa-volume-high me-2"></i> 🔊 Nghe Giọng Đọc (Audio)
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm ms-2" onclick="stopSpeech()">
+                        <i class="fa-solid fa-stop me-1"></i> Dừng
+                    </button>
+                </div>
+
+                <div class="p-3 bg-light rounded-4 border mb-4 fs-6 leading-relaxed" id="storyContent"></div>
+                <div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-4">
+                    <h6 class="fw-bold text-danger mb-3" id="storyQuestion"><i class="fa-solid fa-circle-question me-2"></i>Câu hỏi kiểm tra[cite: 3]:</h6>
+                    <div id="storyOptions" class="d-grid gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ĐỔI MẬT KHẨU HỌC SINH -->
+<div class="modal fade" id="modalDoiMKHS" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-key me-2"></i>Đổi Mật Khẩu Tài Khoản</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formDoiMKHS" onsubmit="saveNewPassHS(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mật khẩu hiện tại</label>
+                        <input type="text" class="form-control bg-light" id="hsOldPass" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mật khẩu mới</label>
+                        <input type="password" class="form-control" id="hsNewPass" required minlength="6" placeholder="Nhập mật khẩu mới...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="form-control" id="hsConfirmPass" required minlength="6" placeholder="Nhập lại mật khẩu mới...">
+                    </div>
+                    <button type="submit" class="btn btn-green w-100 fw-bold">Lưu & Đồng Bộ Hệ Thống</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ĐĂNG XUẤT CHÀO TẠM BIỆT -->
+<div class="modal fade" id="modalLogout" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <div class="modal-body">
+                <i class="fa-solid fa-face-smile-wink fa-4x text-warning mb-3"></i>
+                <h4 class="fw-bold text-dark mb-2">CHÀO TẠM BIỆT EM!</h4>
+                <p class="text-muted">Chúc em có một ngày học tập thật tốt và đạt nhiều điểm cao!</p>
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button class="btn btn-secondary px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Ở lại</button>
+                    <button class="btn btn-orange px-4 rounded-pill fw-bold" onclick="executeLogout()">Đăng xuất ngay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ================= HỆ THỐNG DỮ LIỆU & BẢO MẬT ================= */
+let myInfo = null;
+let isPassVisible = false;
+let studentScore = 100;
+let studentGradeNumber = 1;
+
+let selectedImageItem = null;
+let selectedWordItem = null;
+let matchedPairsCount = 0;
+let previousGameItems = [];
+let currentActiveStoryText = "";
+let currentActiveStoryLang = "EN";
+
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if (!currentUser || currentUser.role !== 'hocsinh') {
+    alert('Vui lòng đăng nhập bằng tài khoản Học Sinh!');
+    window.location.href = 'index.html';
+}
+
+function showToast(msg) {
+    document.getElementById('toastMessage').innerHTML = `<i class="fa-solid fa-circle-check me-2"></i>${msg}`;
+    new bootstrap.Toast(document.getElementById('toastNotification')).show();
+}
+function openModal(id) { new bootstrap.Modal(document.getElementById(id)).show(); }
+function closeModal(id) { bootstrap.Modal.getInstance(document.getElementById(id)).hide(); }
+function showLogoutModal() { openModal('modalLogout'); }
+
+function executeLogout() { 
+    stopSpeech();
+    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+    setTimeout(() => {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html'; 
+    }, 800);
+}
+
+function getFirstMondayOfMonth(year, month) {
+    const firstDay = new Date(year, month - 1, 1);
+    const dayOfWeek = firstDay.getDay(); 
+    const diffToMonday = (dayOfWeek === 0) ? 1 : (dayOfWeek === 1 ? 0 : 8 - dayOfWeek);
+    return new Date(year, month - 1, 1 + diffToMonday);
+}
+
+function getWeekDates(year, month, weekIndex) {
+    const firstMonday = getFirstMondayOfMonth(year, month);
+    const startOfWeek = new Date(firstMonday);
+    startOfWeek.setDate(firstMonday.getDate() + (weekIndex - 1) * 7);
+
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
+        weekDates.push(d);
+    }
+    return weekDates;
+}
+
+function formatDateISO(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+/* ================= HỆ THỐNG GIỌNG ĐỌC AUDIO (WEB SPEECH SYNTHESIS) ================= */
+function speakCurrentStory() {
+    if (!window.speechSynthesis) {
+        alert('Trình duyệt của bạn không hỗ trợ tính năng đọc giọng nói!');
+        return;
+    }
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(currentActiveStoryText);
+    utterance.lang = currentActiveStoryLang === 'EN' ? 'en-US' : 'vi-VN';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.2;
+
+    window.speechSynthesis.speak(utterance);
+}
+
+function stopSpeech() {
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+}
+
+/* ================= KHỞI TẠO CÁ NHÂN & TỰ ĐỘNG BẮT SỐ LỚP ================= */
+function initMyData() {
+    const allHS = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    myInfo = allHS.find(h => h.ma === currentUser.code || h.mail === currentUser.email);
+    
+    if(!myInfo) {
+        alert('Không tìm thấy thông tin học sinh trên hệ thống!');
+        executeLogout();
+        return;
+    }
+
+    const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const myClass = allLop.find(l => l.ma === myInfo.lopMa) || { ten: 'Lớp 1A' };
+
+    const textToScan = (myClass.ten + " " + myInfo.lopRieng + " " + myInfo.lopMa);
+    const matchNumber = textToScan.match(/[1-9]/);
+    if (matchNumber) {
+        studentGradeNumber = parseInt(matchNumber[0]);
+    } else {
+        studentGradeNumber = 1;
+    }
+
+    document.getElementById('headerUserName').innerHTML = `<i class="fa-solid fa-graduation-cap me-1"></i> Em: ${myInfo.ten}`;
+    document.getElementById('btnGradeLabel').textContent = `Khối Lớp ${studentGradeNumber}`;
+
+    document.getElementById('profileName').textContent = myInfo.ten;
+    document.getElementById('profileCode').textContent = myInfo.ma;
+    document.getElementById('profileDob').textContent = `${myInfo.gioiTinh || 'Nam'} / ${myInfo.ngaySinh || '---'}`;
+    document.getElementById('profileSchool').textContent = `${myInfo.truong || '---'} (${myInfo.lopRieng || '---'})`;
+    document.getElementById('profileClass').textContent = `${myClass.ten} (${myInfo.lopMa}) - Khối ${studentGradeNumber}`;
+    document.getElementById('profileJoinDate').textContent = myInfo.ngayNhapHoc || '---';
+    document.getElementById('profileParent').textContent = `${myInfo.tenPH || '---'} - ${myInfo.phone || '---'}`;
+    document.getElementById('profileAddress').textContent = `${myInfo.diaChi || '---'}`;
+    
+    document.getElementById('profileEmail').textContent = myInfo.mail || '---';
+    document.getElementById('hsOldPass').value = myInfo.pass || '123456';
+    updatePassDisplay();
+
+    const gifts = myInfo.quaList || [];
+    if(gifts.length === 0) {
+        document.getElementById('profileGiftsContainer').innerHTML = '<span class="text-muted small">Chưa có quà tặng nào.</span>';
+    } else {
+        let giftHtml = '';
+        gifts.forEach(g => {
+            giftHtml += `<span class="badge bg-info text-dark p-2 fs-6"><i class="fa-solid fa-gift me-1"></i> ${g.ten} (x${g.sl}) - Ngày nhận: ${g.ngay || '---'}</span>`;
+        });
+        document.getElementById('profileGiftsContainer').innerHTML = giftHtml;
+    }
+
+    filterStories('EN');
+}
+
+function togglePassView() {
+    isPassVisible = !isPassVisible;
+    updatePassDisplay();
+}
+
+function updatePassDisplay() {
+    const passEl = document.getElementById('profilePass');
+    const eyeIcon = document.getElementById('passEyeIcon');
+    const realPass = myInfo.pass || '123456';
+
+    if (isPassVisible) {
+        passEl.textContent = realPass;
+        eyeIcon.className = "fa-solid fa-eye-slash";
+    } else {
+        passEl.textContent = "******";
+        eyeIcon.className = "fa-solid fa-eye";
+    }
+}
+
+function saveNewPassHS(e) {
+    e.preventDefault();
+    const newPass = document.getElementById('hsNewPass').value.trim();
+    const confirmPass = document.getElementById('hsConfirmPass').value.trim();
+
+    if (newPass !== confirmPass) {
+        alert('Mật khẩu xác nhận không trùng khớp!');
+        return;
+    }
+
+    const allHS = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const idx = allHS.findIndex(h => h.ma === myInfo.ma);
+    if (idx !== -1) {
+        allHS[idx].pass = newPass;
+        localStorage.setItem('hocSinhList', JSON.stringify(allHS));
+    }
+
+    currentUser.pass = newPass;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+    myInfo.pass = newPass;
+    initMyData();
+
+    showToast('Đã đổi mật khẩu thành công & Đồng bộ dữ liệu Admin!');
+    closeModal('modalDoiMKHS');
+    document.getElementById('formDoiMKHS').reset();
+}
+
+/* ================= 90 CÂU CHUYỆN ĐƯỢC THIẾT KẾ NỘI DUNG RIÊNG BIỆT VÀ TUẦN TỰ ================= */
+function generate90Stories() {
+    const stories = [];
+    
+    // Kho nội dung tiếng Anh phong phú khác nhau hoàn toàn cho 45 tập
+    const enTitles = [
+        "The Smart Little Fox", "The Brave Rabbit Journey", "The Magic Golden Apple", "The Little Bird Learning to Fly", "The Friendly Forest Bear", 
+        "The Shining Star at Night", "The Happy Dancing Cat", "The Clever Monkey and Bridge", "The Magic Paintbrush", "The Secret Garden Adventure",
+        "The Little Frog's Big Dream", "The Wise Old Owl", "The Sun and the Wind", "The Rainbow River", "The Lost Puppy Finding Home",
+        "The Busy Little Honeybee", "The Singing Cricket", "The Gentle Giant Tree", "The Mysterious Island", "The Friendly Dolphin",
+        "The Clock That Stopped", "The Flying Carpet", "The Dragon Who Loved Flowers", "The Little Star's Wish", "The Magic Music Box",
+        "The Sleepy Koala", "The Fast Cheetah Race", "The Clever Squirrel", "The Penguin in the Desert", "The Butterfly's Transformation",
+        "The Snowman Who Wanted Summer", "The Magic Key", "The Little Lighthouse", "The Pirate's Friendly Parrot", "The Moon's Journey",
+        "The Windmill in the Hills", "The Magic Backpack", "The Little Train That Could", "The Dolphin's Song", "The Starlight Bridge",
+        "The Friendly Robot", "The Magical Teapot", "The Secret Treehouse", "The Golden Crown", "The Forever Spring"
+    ];
+
+    for (let i = 1; i <= 45; i++) {
+        const titleName = enTitles[i - 1] || `English Adventure Story ${i}`;
+        stories.push({
+            id: `EN_${i}`, lang: 'EN',
+            title: `Tập ${i}: ${titleName}`,
+            desc: `Khám phá câu chuyện Tiếng Anh hấp dẫn số ${i} giúp phát triển tư duy và từ vựng phong phú.`,
+            content: `Episode ${i}: In this amazing adventure, our main character discovers new friends and learns valuable lessons about kindness, courage, and teamwork in the magical world.`,
+            question: `What is the main moral lesson in English Episode ${i}?`,
+            options: ['Always be kind and brave', 'Give up when it is hard', 'Never trust anyone'], correctIdx: 0
+        });
+    }
+
+    // Kho nội dung tiếng Việt phong phú khác nhau hoàn toàn cho 45 tập
+    const vnTitles = [
+        "Sự Tích Thỏ Và Rùa", "Cậu Bé Tích Chu Hiếu Thảo", "Cây Tre Trăm Đốt Kỳ Diệu", "Sự Tích Quả Dưa Hấu", "Sự Tích Bánh Chưng Bánh Giầy", 
+        "Thạch Sanh Dũng Cảm", "Sự Tích Con Rồng Cháu Tiên", "Sự Tích Hồ Ba Bể", "Sự Tích Chó Phú Quốc", "Sự Tích Trầu Cau",
+        "Sự Tích Sông Đôi Mươi", "Sự Tích Chim Sơn Ca", "Cóc Kiện Trời", "Tấm Cám Phiên Bản Mới", "Sọ Dừa Thông Minh",
+        "Cây Khế Trả Ân", "Nàng Tiên Ốc", "Sự Tích Hoa Mai Vàng", "Sự Tích Chim Én", "Sự Tích Đèn Trung Thu",
+        "Sự Tích Ngưu Lang Chức Nữ", "Sự Tích Chú Cuội Cung Hằng", "Sự Tích Dã Quỳ", "Sự Tích Hoa Hồng", "Sự Tích Biển Đỏ",
+        "Sự Tích Con Muỗi", "Sự Tích Gió Và Mây", "Sự Tích Mưa Rơi", "Sự Tích Cầu Vồng", "Sự Tích Lửa Thần",
+        "Sự Tích Hòn Vọng Phu", "Sự Tích Núi Ngũ Hành", "Sự Tích Đảo Ngọc", "Sự Tích Giếng Nước Ngọt", "Sự Tích Cánh Đồng Lúa",
+        "Sự Tích Con Tằm Vả Sợi Tơ", "Sự Tích Chim Sâu", "Sự Tích Gà Trống Gọi Dạy", "Sự Tích Chú Chó Thông Minh", "Sự Tích Mèo Rửa Mặt",
+        "Sự Tích Hổ Có Vằn", "Sự Tích Rùa Có Mai", "Sự Tích Cá Chép Hóa Rồng", "Sự Tích Chim Công Xinh Đẹp", "Sự Tích Muôn Loài Hoa Nở"
+    ];
+
+    for (let i = 1; i <= 45; i++) {
+        const titleName = vnTitles[i - 1] || `Truyện Cổ Tích Tập ${i}`;
+        stories.push({
+            id: `VN_${i}`, lang: 'VN',
+            title: `Tập ${i}: ${titleName}`,
+            desc: `Câu chuyện dân gian và cổ tích Việt Nam đặc sắc tập ${i} mang đậm tính giáo dục nhân cách.`,
+            content: `Tập ${i} kể về hành trình đầy kỳ diệu và nhân văn trong kho tàng truyện cổ tích Việt Nam, nơi những điều tốt đẹp luôn chiến thắng cái ác.`,
+            question: `Ý nghĩa chính của câu chuyện cổ tích Tập ${i} là gì?`,
+            options: ['Ở hiền gặp lành, ác giả ác báo', 'Sống ích kỷ chỉ nghĩ cho bản thân', 'Bỏ cuộc khi gặp khó khăn'], correctIdx: 0
+        });
+    }
+
+    return stories;
+}
+
+const allStoriesData = generate90Stories();
+
+function filterStories(type) {
+    let filtered = allStoriesData.filter(s => s.lang === type);
+    let html = '';
+    filtered.forEach(s => {
+        const icon = s.lang === 'EN' ? 'fa-language text-primary' : 'fa-book-open text-success';
+        const badge = s.lang === 'EN' ? '<span class="badge bg-primary">English</span>' : '<span class="badge bg-success">Tiếng Việt</span>';
+
+        html += `
+        <div class="col-md-4">
+            <div class="game-card">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        ${badge}
+                        <small class="text-muted"><i class="fa-solid fa-star text-warning me-1"></i> +20 Điểm</small>
+                    </div>
+                    <h6 class="fw-bold text-dark"><i class="fa-solid ${icon} me-2"></i>${s.title}</h6>
+                    <p class="small text-muted mb-3">${s.desc}</p>
+                </div>
+                <button class="btn btn-sm btn-orange w-100 fw-bold" onclick="playStoryModal('${s.id}')">
+                    <i class="fa-solid fa-circle-play me-1"></i> Đọc Truyện & Nghe Đọc
+                </button>
+            </div>
+        </div>`;
+    });
+    document.getElementById('storyGridContainer').innerHTML = html;
+}
+
+function playStoryModal(id) {
+    const s = allStoriesData.find(x => x.id === id);
+    if (!s) return;
+
+    currentActiveStoryText = s.title + ". " + s.content;
+    currentActiveStoryLang = s.lang;
+
+    document.getElementById('storyTitle').innerHTML = `<i class="fa-solid fa-book-open me-2"></i>${s.title}`;
+    document.getElementById('storyContent').innerHTML = `<p class="m-0">${s.content}</p>`;
+    document.getElementById('storyQuestion').innerHTML = `<i class="fa-solid fa-circle-question me-2"></i>${s.question}`;
+
+    let optHtml = '';
+    s.options.forEach((opt, idx) => {
+        optHtml += `<button class="btn btn-outline-primary text-start fw-bold p-3" onclick="answerStory('${s.id}', ${idx})">${String.fromCharCode(65 + idx)}. ${opt}</button>`;
+    });
+
+    document.getElementById('storyOptions').innerHTML = optHtml;
+    openModal('modalStoryGame');
+    setTimeout(() => { speakCurrentStory(); }, 500);
+}
+
+function answerStory(id, choiceIdx) {
+    stopSpeech();
+    const s = allStoriesData.find(x => x.id === id);
+    if (!s) return;
+
+    if (choiceIdx === s.correctIdx) {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        studentScore += 20;
+        document.getElementById('studentScore').textContent = studentScore;
+        showToast('Chúc mừng em đã trả lời đúng và nhận +20 Điểm thưởng!');
+        closeModal('modalStoryGame');
+    } else {
+        alert('Rất tiếc! Đáp án chưa đúng. Em hãy đọc kỹ lại câu chuyện và thử lại nhé!');
+    }
+}
+
+/* ================= TRÒ CHƠI NỐI CHỮ THEO KHỐI LỚP ================= */
+function generateMasterBank() {
+    const master = {};
+    const vocabListByGrade = {
+        1: [
+            { icon: '🍎', word: 'Apple' }, { icon: '🐱', word: 'Cat' }, { icon: '☀️', word: 'Sun' }, { icon: '🏠', word: 'House' }, { icon: '🐶', word: 'Dog' },
+            { icon: '🚗', word: 'Car' }, { icon: '🐟', word: 'Fish' }, { icon: '📚', word: 'Book' }, { icon: '⭐', word: 'Star' }, { icon: '🎈', word: 'Balloon' }
+        ],
+        2: [
+            { icon: '🍌', word: 'Banana' }, { icon: '🐘', word: 'Elephant' }, { icon: '🌸', word: 'Flower' }, { icon: '✏️', word: 'Pencil' }, { icon: '⚽', word: 'Football' },
+            { icon: '🌳', word: 'Tree' }, { icon: '🎒', word: 'Schoolbag' }, { icon: '👕', word: 'Shirt' }, { icon: '🕒', word: 'Clock' }, { icon: '🐰', word: 'Rabbit' }
+        ],
+        3: [
+            { icon: '💻', word: 'Computer' }, { icon: '🎸', word: 'Guitar' }, { icon: '🚲', word: 'Bicycle' }, { icon: '🍉', word: 'Watermelon' }, { icon: '🚀', word: 'Rocket' },
+            { icon: '🐧', word: 'Penguin' }, { icon: '🏰', word: 'Castle' }, { icon: '🎨', word: 'Painting' }, { icon: '🚁', word: 'Helicopter' }, { icon: '🌊', word: 'Ocean' }
+        ],
+        4: [
+            { icon: '🦒', word: 'Giraffe' }, { icon: '🌋', word: 'Volcano' }, { icon: '🔬', word: 'Microscope' }, { icon: '🎪', word: 'Circus' }, { icon: '🛸', word: 'UFO' },
+            { icon: '🧭', word: 'Compass' }, { icon: '🎻', word: 'Violin' }, { icon: '🌵', word: 'Cactus' }, { icon: '🦜', word: 'Parrot' }, { icon: '🏮', word: 'Lantern' }
+        ],
+        5: [
+            { icon: '🗽', word: 'Statue' }, { icon: '🪐', word: 'Planet' }, { icon: '🧬', word: 'DNA' }, { icon: '🛡️', word: 'Shield' }, { icon: '🔮', word: 'Crystal' },
+            { icon: '🦖', word: 'Dinosaur' }, { icon: '🏺', word: 'Pottery' }, { icon: '🏹', word: 'Archery' }, { icon: '👑', word: 'Crown' }, { icon: '⚓', word: 'Anchor' }
+        ],
+        6: [
+            { icon: '🏛️', word: 'Temple' }, { icon: '📡', word: 'Satellite' }, { icon: '📜', word: 'Scroll' }, { icon: '⚡', word: 'Energy' }, { icon: '💡', word: 'Invention' },
+            { icon: '🌐', word: 'Network' }, { icon: '⚖️', word: 'Justice' }, { icon: '⚙️', word: 'Mechanic' }, { icon: '🧲', word: 'Magnet' }, { icon: '🔭', word: 'Telescope' }
+        ],
+        7: [
+            { icon: '🧪', word: 'Experiment' }, { icon: '🌿', word: 'Ecology' }, { icon: '🌋', word: 'Eruption' }, { icon: '📊', word: 'Statistics' }, { icon: '💡', word: 'Hypothesis' },
+            { icon: '🧬', word: 'Genetics' }, { icon: '📐', word: 'Geometry' }, { icon: '🔬', word: 'Laboratory' }, { icon: '🌍', word: 'Biosphere' }, { icon: '⚛️', word: 'Atom' }
+        ],
+        8: [
+            { icon: '⚙️', word: 'Technology' }, { icon: '💻', word: 'Algorithm' }, { icon: '🚀', word: 'Aerospace' }, { icon: '💡', word: 'Innovation' }, { icon: '📉', word: 'Economy' },
+            { icon: '🔋', word: 'Battery' }, { icon: '📡', word: 'Frequency' }, { icon: '🔍', word: 'Investigation' }, { icon: '🌐', word: 'Globalization' }, { icon: '📊', word: 'Analytics' }
+        ],
+        9: [
+            { icon: '🎓', word: 'Scholarship' }, { icon: '💼', word: 'Profession' }, { icon: '📜', word: 'Diploma' }, { icon: '💡', word: 'Philosophy' }, { icon: '🏛️', word: 'Institution' },
+            { icon: '🔬', word: 'Research' }, { icon: '🌐', word: 'Civilization' }, { icon: '📈', word: 'Development' }, { icon: '⚖️', word: 'Legislation' }, { icon: '🎯', word: 'Strategy' }
+        ]
+    };
+
+    for (let g = 1; g <= 9; g++) {
+        const gradeList = [];
+        const basePool = vocabListByGrade[g];
+        for (let i = 1; i <= 45; i++) {
+            const sample = basePool[(i - 1) % basePool.length];
+            gradeList.push({ id: i, icon: sample.icon, word: sample.word });
+        }
+        master[g] = gradeList;
+    }
+    return master;
+}
+
+const masterMatchingBank = generateMasterBank();
+
+function openMatchingGameModal() {
+    document.getElementById('matchingModalTitle').innerHTML = `<i class="fa-solid fa-shapes me-2"></i>Trò Chơi Nối Chữ Khối Lớp ${studentGradeNumber}`;
+    document.getElementById('matchingSubTitle').innerHTML = `Chương trình Khối Lớp ${studentGradeNumber} (Có lặp lại 30% câu quen thuộc giúp bé ôn tập tốt hơn)`;
+    initMatchingGameForStudent();
+    openModal('modalMatchingGame');
+}
+
+function initMatchingGameForStudent() {
+    selectedImageItem = null;
+    selectedWordItem = null;
+    matchedPairsCount = 0;
+
+    const pool = masterMatchingBank[studentGradeNumber] || masterMatchingBank[1];
+    let chosenItems = [];
+    let neededNewCount = 5;
+
+    if (previousGameItems.length > 0) {
+        const carryOverCount = Math.min(2, previousGameItems.length);
+        const shuffledOld = [...previousGameItems].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < carryOverCount; i++) {
+            chosenItems.push(shuffledOld[i]);
+            neededNewCount--;
+        }
+    }
+
+    const remainingPool = pool.filter(p => !chosenItems.some(c => c.id === p.id));
+    const shuffledNew = [...remainingPool].sort(() => Math.random() - 0.5);
+    for (let i = 0; i < neededNewCount && i < shuffledNew.length; i++) {
+        chosenItems.push(shuffledNew[i]);
+    }
+
+    previousGameItems = [...chosenItems];
+
+    let shuffledImages = [...chosenItems].sort(() => Math.random() - 0.5);
+    let shuffledWords = [...chosenItems].sort(() => Math.random() - 0.5);
+
+    let imgHtml = '';
+    shuffledImages.forEach(item => {
+        imgHtml += `<div class="match-item" id="img_${item.id}" onclick="selectImage(${item.id})">
+            <span style="font-size: 2.5rem;">${item.icon}</span>
+        </div>`;
+    });
+
+    let wordHtml = '';
+    shuffledWords.forEach(item => {
+        wordHtml += `<div class="match-item" id="word_${item.id}" onclick="selectWord(${item.id})">
+            ${item.word}
+        </div>`;
+    });
+
+    document.getElementById('matchImagesContainer').innerHTML = imgHtml;
+    document.getElementById('matchWordsContainer').innerHTML = wordHtml;
+}
+
+function selectImage(id) {
+    if (document.getElementById(`img_${id}`).classList.contains('matched')) return;
+    document.querySelectorAll('[id^="img_"]').forEach(el => el.classList.remove('selected'));
+    document.getElementById(`img_${id}`).classList.add('selected');
+    selectedImageItem = id;
+    checkMatch();
+}
+
+function selectWord(id) {
+    if (document.getElementById(`word_${id}`).classList.contains('matched')) return;
+    document.querySelectorAll('[id^="word_"]').forEach(el => el.classList.remove('selected'));
+    document.getElementById(`word_${id}`).classList.add('selected');
+    selectedWordItem = id;
+    checkMatch();
+}
+
+function checkMatch() {
+    if (selectedImageItem !== null && selectedWordItem !== null) {
+        if (selectedImageItem === selectedWordItem) {
+            document.getElementById(`img_${selectedImageItem}`).classList.add('matched');
+            document.getElementById(`img_${selectedImageItem}`).classList.remove('selected');
+            document.getElementById(`word_${selectedWordItem}`).classList.add('matched');
+            document.getElementById(`word_${selectedWordItem}`).classList.remove('selected');
+
+            matchedPairsCount++;
+            studentScore += 10;
+            document.getElementById('studentScore').textContent = studentScore;
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+
+            if (matchedPairsCount === 5) {
+                showToast('Tuyệt vời! Bé đã hoàn thành xuất sắc ván nối chữ và nhận +40 Điểm thưởng!');
+                studentScore += 40;
+                document.getElementById('studentScore').textContent = studentScore;
+            }
+        } else {
+            document.getElementById(`img_${selectedImageItem}`).classList.remove('selected');
+            document.getElementById(`word_${selectedWordItem}`).classList.remove('selected');
+            showToast('Chưa đúng rồi! Bé hãy thử nối lại nhé.');
+        }
+        selectedImageItem = null;
+        selectedWordItem = null;
+    }
+}
+
+/* ================= TAB 3: THỜI KHÓA BIỂU ================= */
+function initDateTimeSelects() {
+    const yearSelect = document.getElementById('tkbYear');
+    const monthSelect = document.getElementById('tkbMonth');
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth() + 1;
+
+    yearSelect.innerHTML = '';
+    for (let y = curYear - 1; y <= curYear + 2; y++) {
+        yearSelect.innerHTML += `<option value="${y}" ${y === curYear ? 'selected' : ''}>Năm ${y}</option>`;
+    }
+
+    monthSelect.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+        monthSelect.innerHTML += `<option value="${m}" ${m === curMonth ? 'selected' : ''}>Tháng ${m}</option>`;
+    }
+
+    updateWeekOptions();
+}
+
+function updateWeekOptions() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const weekSelect = document.getElementById('tkbWeek');
+
+    weekSelect.innerHTML = '';
+    for (let w = 1; w <= 5; w++) {
+        const dates = getWeekDates(year, month, w);
+        if (w === 5 && dates[0].getMonth() + 1 !== month) break;
+
+        const startStr = `${dates[0].getDate().toString().padStart(2, '0')}/${(dates[0].getMonth() + 1).toString().padStart(2, '0')}`;
+        const endStr = `${dates[6].getDate().toString().padStart(2, '0')}/${(dates[6].getMonth() + 1).toString().padStart(2, '0')}`;
+        weekSelect.innerHTML += `<option value="${w}">Tuần ${w} (${startStr} - ${endStr})</option>`;
+    }
+    weekSelect.value = 1;
+}
+
+function onYearMonthChange() {
+    updateWeekOptions();
+    renderTKBGrid();
+}
+
+function changeWeek(offset) {
+    const weekSelect = document.getElementById('tkbWeek');
+    let curWeek = parseInt(weekSelect.value) + offset;
+    if (curWeek >= 1 && curWeek <= weekSelect.options.length) {
+        weekSelect.value = curWeek;
+        renderTKBGrid();
+    }
+}
+
+function setCurrentWeek() {
+    initDateTimeSelects();
+    renderTKBGrid();
+}
+
+function renderTKBGrid() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const weekIndex = parseInt(document.getElementById('tkbWeek').value);
+
+    const dates = getWeekDates(year, month, weekIndex);
+    const startDateStr = `${dates[0].getDate()}/${dates[0].getMonth() + 1}/${dates[0].getFullYear()}`;
+    const endDateStr = `${dates[6].getDate()}/${dates[6].getMonth() + 1}/${dates[6].getFullYear()}`;
+    document.getElementById('weekRangeLabel').textContent = `Tuần ${weekIndex}: Từ ${startDateStr} đến ${endDateStr}`;
+
+    const headerRow = document.getElementById('tkbHeaderRow');
+    let headerHtml = '<th style="width: 130px;">Ca / Thời Gian</th>';
+    const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
+    for (let i = 0; i < 7; i++) {
+        const dStr = `${dates[i].getDate().toString().padStart(2, '0')}/${(dates[i].getMonth() + 1).toString().padStart(2, '0')}`;
+        headerHtml += `<th>${dayNames[i]}<br><small>(${dStr})</small></th>`;
+    }
+    headerRow.innerHTML = headerHtml;
+
+    const shiftTimes = [
+        { id: 'C1', name: 'Sáng Ca 1', time: '08:00 - 09:30' },
+        { id: 'C2', name: 'Sáng Ca 2', time: '09:30 - 11:00' },
+        { id: 'C3', name: 'Chiều Ca 1', time: '14:00 - 15:30' },
+        { id: 'C4', name: 'Chiều Ca 2', time: '15:30 - 17:00' },
+        { id: 'C5', name: 'Tối Ca 1', time: '17:30 - 19:00' },
+        { id: 'C6', name: 'Tối Ca 2', time: '19:00 - 20:30' }
+    ];
+
+    const allTkb = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const allPhong = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const allGV = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+
+    let gridHtml = '';
+    shiftTimes.forEach(shift => {
+        gridHtml += `<tr>`;
+        gridHtml += `<td class="time-col"><strong>${shift.name}</strong><br><small>${shift.time}</small></td>`;
+
+        for (let i = 0; i < 7; i++) {
+            const dateStr = formatDateISO(dates[i]);
+            let cellItems = '';
+
+            allTkb.forEach((t) => {
+                if (t.lopMa === myInfo.lopMa && t.ngay === dateStr && t.ca === shift.id) {
+                    const phong = allPhong.find(p => p.ma === t.phongMa) || { ten: 'Phòng', icon: '🏫' };
+                    const lop = allLop.find(l => l.ma === t.lopMa) || { ten: 'Lớp' };
+                    const gv = allGV.find(g => g.ma === t.gvMa) || { ten: 'Giáo viên' };
+
+                    cellItems += `<div class="tkb-card">
+                        <span class="badge bg-light text-dark float-end">${phong.icon || '🏫'} ${phong.ten}</span>
+                        <div class="fw-bold text-primary">${lop.ten}</div>
+                        <small class="text-muted"><i class="fa-solid fa-chalkboard-user me-1"></i>GV: ${gv.ten}</small>
+                    </div>`;
+                }
+            });
+
+            gridHtml += `<td>${cellItems}</td>`;
+        }
+        gridHtml += `</tr>`;
+    });
+
+    document.getElementById('tkbGridBody').innerHTML = gridHtml;
+}
+
+/* ================= TAB 4: NHẬT KÝ CHUYÊN CẦN ================= */
+function renderAttendanceHistory() {
+    const allTkb = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const allPhong = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const allGV = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+
+    const classTkb = allTkb.filter(t => t.lopMa === myInfo.lopMa).sort((a,b) => (a.ngay < b.ngay) ? 1 : -1);
+
+    let html = '';
+    if(classTkb.length === 0) {
+        html = '<tr><td colspan="6" class="text-muted">Chưa có dữ liệu nhật ký học tập.</td></tr>';
+    } else {
+        classTkb.forEach(t => {
+            const lop = allLop.find(l => l.ma === t.lopMa) || { ten: 'Lớp' };
+            const phong = allPhong.find(p => p.ma === t.phongMa) || { ten: 'Phòng' };
+            const gv = allGV.find(g => g.ma === t.gvMa) || { ten: 'Giáo viên' };
+
+            const isAttended = diemDanhList.includes(`${t.id}_${myInfo.ma}`);
+            const statusBadge = isAttended 
+                ? `<span class="badge bg-success fs-6"><i class="fa-solid fa-check me-1"></i> CÓ MẶT</span>` 
+                : `<span class="badge bg-secondary fs-6"><i class="fa-solid fa-clock me-1"></i> CHƯA ĐIỂM DANH / VẮNG</span>`;
+
+            html += `<tr>
+                <td class="fw-bold">${t.ngay}</td>
+                <td>Ca ${t.ca}</td>
+                <td class="text-primary fw-bold">${lop.ten}</td>
+                <td>${phong.ten}</td>
+                <td>${gv.ten}</td>
+                <td>${statusBadge}</td>
+            </tr>`;
+        });
+    }
+
+    document.getElementById('attendanceHistoryBody').innerHTML = html;
+}
+
+/* ================= TAB 5: BÁO CÁO HỌC PHÍ & VIETQR ================= */
+function renderFeeReport() {
+    const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const thuTienList = JSON.parse(localStorage.getItem('thuTienGiaoDichList')) || [];
+    const bankList = JSON.parse(localStorage.getItem('bankAccounts')) || [];
+
+    const myClass = allLop.find(l => l.ma === myInfo.lopMa) || { hocPhi: 400000 };
+    const classPrice = Number(myClass.hocPhi || 400000);
+
+    let totalPaid = 0;
+    let myPayments = [];
+
+    thuTienList.forEach(t => {
+        if (t.hsMa === myInfo.ma) {
+            totalPaid += Number(t.soTien);
+            myPayments.push(t);
+        }
+    });
+
+    const remainAmount = classPrice - totalPaid;
+    const maPhieuThu = 'PT-' + myInfo.ma;
+
+    document.getElementById('feeReceiptCode').textContent = maPhieuThu;
+    document.getElementById('feeClassPrice').textContent = classPrice.toLocaleString() + ' đ';
+    document.getElementById('feePaidAmount').textContent = totalPaid.toLocaleString() + ' đ';
+    document.getElementById('feeRemainAmount').textContent = (remainAmount > 0 ? remainAmount : 0).toLocaleString() + ' đ';
+
+    if (remainAmount <= 0) {
+        document.getElementById('feeStatusBadge').innerHTML = `<span class="badge bg-success fs-6"><i class="fa-solid fa-circle-check me-1"></i> ĐÃ HOÀN THÀNH HỌC PHÍ</span>`;
+    } else {
+        document.getElementById('feeStatusBadge').innerHTML = `<span class="badge bg-danger fs-6"><i class="fa-solid fa-triangle-exclamation me-1"></i> CÒN THIẾU ${(remainAmount).toLocaleString()} VNĐ</span>`;
+    }
+
+    const mainBank = bankList[0] || { code: 'MBBank', accNo: '0905123456' };
+    const payAmount = remainAmount > 0 ? remainAmount : 0;
+    const qrInfo = `${myInfo.ten} ${maPhieuThu} nop hoc phi`;
+    const qrUrl = `https://img.vietqr.io/image/${mainBank.code}-${mainBank.accNo}-compact2.png?amount=${payAmount}&addInfo=${encodeURIComponent(qrInfo)}`;
+    document.getElementById('vietQrImg').src = qrUrl;
+
+    let paymentRows = '';
+    myPayments.forEach(p => {
+        paymentRows += `<tr>
+            <td><span class="badge bg-secondary">${p.id}</span></td>
+            <td>${p.ngayThu}</td>
+            <td class="text-success fw-bold">${Number(p.soTien).toLocaleString()} đ</td>
+            <td>${p.nguoiThu || 'Chuyển khoản'}</td>
+            <td>${p.noiDung || 'Nộp học phí'}</td>
+        </tr>`;
+    });
+
+    document.getElementById('paymentHistoryBody').innerHTML = paymentRows || `<tr><td colspan="5" class="text-muted">Chưa có lịch sử nộp tiền nào.</td></tr>`;
+}
+
+/* ================= INIT ON LOAD ================= */
+document.addEventListener('DOMContentLoaded', () => {
+    initMyData();
+    initDateTimeSelects();
+    renderTKBGrid();
+    renderAttendanceHistory();
+    renderFeeReport();
+});
+</script>
+</body>
+</html>

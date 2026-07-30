@@ -1,0 +1,3185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM QUẢN LÝ TRUNG TÂM - Admin System</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUBJuv76X2GbhEGgGUat2O_g9rX5Bb0nA",
+    authDomain: "crm-tt-genius-kids.firebaseapp.com",
+    projectId: "crm-tt-genius-kids",
+    storageBucket: "crm-tt-genius-kids.firebasestorage.app",
+    messagingSenderId: "42080302170",
+    appId: "1:42080302170:web:df2e514cde42d500c85463"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  
+  window.db = db;
+  window.FirestoreDeps = { doc, getDoc, setDoc };
+  console.log("Firebase đã sẵn sàng kết nối!");[cite: 2]
+</script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 & FontAwesome 6 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- html2pdf & XLSX Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary-orange: #ff5e00;
+            --bright-orange: #ff7b00;
+            --gradient-orange: linear-gradient(135deg, #ff5e00 0%, #ff8c00 50%, #ff0055 100%);
+            --accent-green: #00e676;
+            --accent-yellow: #ffaa00;
+            --dark-orange: #d64045;
+            --font-main: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            --card-radius: 20px;
+            --input-radius: 12px;
+        }
+
+        * { font-family: var(--font-main); box-sizing: border-box; }
+        body { background: #f4f6f9; min-height: 100vh; color: #2b2d42; overflow-x: hidden; }
+
+        .admin-header {
+            background: var(--gradient-orange);
+            color: white;
+            padding: 24px 20px 18px 20px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 30px rgba(255, 94, 0, 0.35);
+            position: relative;
+            z-index: 100;
+        }
+
+        .main-title {
+            font-size: 2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .quote-box {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50px;
+            padding: 6px 24px;
+            display: inline-block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-tabs-custom { border: none; gap: 12px; margin-top: 18px; justify-content: center; }
+        .nav-tabs-custom .nav-link {
+            border: none; background: rgba(255, 255, 255, 0.25); color: white;
+            font-weight: 700; padding: 12px 26px; border-radius: 16px; transition: all 0.3s;
+        }
+        .nav-tabs-custom .nav-link.active { background: white; color: var(--primary-orange); box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+
+        .main-container { padding: 25px 20px; max-width: 1600px; margin: auto; }
+        .custom-card {
+            background: white; border-radius: var(--card-radius); padding: 24px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 2px solid #ffe8dc; margin-bottom: 25px;
+        }
+        .card-header-title {
+            color: var(--primary-orange); font-weight: 800; font-size: 1.25rem;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+            padding-bottom: 10px; border-bottom: 2px dashed #ffd5c0;
+        }
+
+        .btn-orange {
+            background: linear-gradient(45deg, #ff5e00, #ff8c00); color: white; font-weight: 700;
+            border-radius: var(--input-radius); border: none; padding: 10px 18px; transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 94, 0, 0.3);
+        }
+        .btn-orange:hover { background: linear-gradient(45deg, #ff7b00, #ff0055); color: white; transform: translateY(-2px); }
+        .btn-outline-orange {
+            border: 2px solid #ff5e00; color: #ff5e00; font-weight: 700;
+            border-radius: var(--input-radius); padding: 8px 16px; transition: all 0.3s; background: transparent;
+        }
+        .btn-outline-orange:hover { background: #ff5e00; color: white; }
+        .btn-green {
+            background: linear-gradient(45deg, #00c853, #00e676); color: white; font-weight: 700;
+            border-radius: var(--input-radius); border: none; padding: 10px 18px; transition: all 0.3s;
+        }
+
+        .modal-content { border-radius: 22px; border: 3px solid #ff7b00; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .modal-header { background: var(--gradient-orange); color: white; padding: 18px 24px; border: none; }
+        .form-control, .form-select { border-radius: var(--input-radius); border: 2px solid #ffd0b8; padding: 10px 14px; font-weight: 600; }
+
+        @keyframes softWiggle {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-2deg); }
+            75% { transform: rotate(2deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .wiggle-item {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .wiggle-item:hover {
+            animation: softWiggle 0.3s ease-in-out infinite;
+            color: var(--primary-orange) !important;
+        }
+
+        /* CARD KỲ KHÓA THỜI GIAN */
+        .lock-period-card {
+            border: 2px solid #ffd0b8;
+            background: #fff8f5;
+            border-radius: 14px;
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .lock-period-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 94, 0, 0.15);
+            border-color: #ff5e00;
+        }
+        .lock-period-card.active {
+            background: #ff5e00;
+            color: white;
+            border-color: #ff5e00;
+            box-shadow: 0 4px 15px rgba(255, 94, 0, 0.3);
+        }
+        .lock-period-card.active .text-muted { color: #ffe8dc !important; }
+
+        /* BẢNG CÂN ĐỐI */
+        .table-responsive-custom {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid #ffe2d4;
+            max-height: 480px;
+        }
+        .table-balanced {
+            width: 100% !important;
+            min-width: 1100px;
+            table-layout: auto;
+            margin-bottom: 0;
+        }
+        .table-balanced th {
+            background: #ff5e00;
+            color: white;
+            font-weight: 700;
+            white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px 10px;
+        }
+        .table-balanced td {
+            vertical-align: middle;
+            white-space: nowrap;
+            padding: 10px;
+        }
+
+        /* TKB Table */
+        .tkb-table { width: 100%; border-collapse: separate; border-spacing: 6px; min-width: 1000px; }
+        .tkb-table th { background: #ff7b00; color: white; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; }
+        .tkb-table td { background: #fff8f5; border: 2px solid #ffe2d4; border-radius: 14px; vertical-align: top; padding: 8px; min-height: 110px; position: relative; }
+        .time-col { background: #ffe3d1 !important; color: #d64045; font-weight: 800; text-align: center; width: 130px; vertical-align: middle !important; }
+
+        .tkb-cell-add-btn {
+            display: block; width: 100%; text-align: center; padding: 4px 0; margin-top: 4px;
+            background: #fff; border: 1px dashed #ff7b00; color: #ff5e00; border-radius: 8px;
+            font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+        }
+        .tkb-cell-add-btn:hover { background: #ff7b00; color: white; border-style: solid; }
+
+        .tkb-card { 
+            position: relative; padding: 8px 10px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); 
+            margin-bottom: 6px; color: #1a1a1a; border-left: 6px solid rgba(0,0,0,0.2); transition: transform 0.2s;
+        }
+        .tkb-card:hover { transform: translateY(-2px); cursor: pointer; }
+        .tkb-card .room-badge { position: absolute; top: 4px; right: 6px; font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.85); }
+        .tkb-card .class-name { font-weight: 800; font-size: 0.85rem; margin-top: 2px; }
+        .tkb-card .teacher-name { font-size: 0.78rem; font-weight: 600; opacity: 0.9; }
+
+        /* MẪU IN PDF CHUẨN TRÌNH KÝ A4 */
+        .pdf-template { 
+            font-family: 'Be Vietnam Pro', sans-serif; 
+            padding: 15px 20px; 
+            background: white; 
+            color: #222; 
+            box-sizing: border-box;
+        }
+        #pdfRenderContainer {
+            background: #525659 !important;
+            padding: 15px !important;
+            max-height: 75vh !important;
+            overflow-y: auto !important;
+        }
+
+        #pdfTargetContent {
+            width: 190mm !important;
+            margin: 0 auto !important;
+            background: white !important;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        .pdf-header { 
+            text-align: center; 
+            border-bottom: 2px solid #ff5e00; 
+            padding-bottom: 8px; 
+            margin-bottom: 10px; 
+        }
+        .pdf-header h2 { 
+            color: #ff5e00; 
+            font-weight: 800; 
+            margin: 0; 
+            font-size: 15pt; 
+            text-transform: uppercase; 
+        }
+        .pdf-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 6px; 
+            margin-bottom: 10px; 
+            page-break-inside: avoid;
+        }
+        .pdf-table th, .pdf-table td { 
+            border: 1px solid #ccc; 
+            padding: 5px 8px; 
+            font-size: 8.5pt; 
+            text-align: center; 
+        }
+        .pdf-table th { 
+            background-color: #fff0e6; 
+            color: #d64045; 
+            font-weight: bold; 
+        }
+
+        .kpi-card {
+            border-radius: 16px; padding: 18px; color: white; transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
+        .kpi-card:hover { transform: translateY(-3px); }
+        .kpi-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; opacity: 0.9; }
+        .kpi-value { font-size: 1.4rem; font-weight: 800; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+  <div id="toastNotification" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body fw-bold fs-6" id="toastMessage">
+        <i class="fa-solid fa-circle-check me-2"></i>Thao tác thành công!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="admin-header">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <span class="badge bg-light text-danger fw-bold fs-6 px-3 py-2 rounded-pill shadow-sm">
+                <i class="fa-solid fa-user-shield me-1"></i> HE THONG ADMIN
+            </span>
+        </div>
+        <div class="text-end">
+            <span class="fw-bold me-2"><i class="fa-solid fa-circle-user me-1"></i> Quản Trị Viên</span>
+            <button class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="showLogoutModal()">
+                <i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất
+            </button>
+        </div>
+    </div>
+
+    <!-- TÊN GỌI CHÍNH THỨC -->
+    <div class="main-title">CRM QUẢN LÝ TRUNG TÂM</div>
+
+    <!-- CÂU TRUYỀN CẢM HỨNG GIÁO DỤC -->
+    <div class="text-center mt-2">
+        <div class="quote-box" id="quoteText">
+            <i class="fa-solid fa-quote-left me-2 text-warning"></i>
+            <span>Mỗi người thầy giỏi như một ngọn nến thắp sáng tương lai học sinh.</span>
+            <i class="fa-solid fa-quote-right ms-2 text-warning"></i>
+        </div>
+    </div>
+
+    <!-- CÁC MỤC ĐIỀU HƯỚNG CHÍNH -->
+    <ul class="nav nav-tabs nav-tabs-custom" id="mainTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-sec" type="button">
+                <i class="fa-solid fa-folder-tree me-2"></i>TÀI KHOẢN VÀ MẬT KHẨU
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="tkb-tab" data-bs-toggle="tab" data-bs-target="#tkb-sec" type="button">
+                <i class="fa-solid fa-calendar-days me-2"></i>THỜI KHÓA BIỂU
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-sec" type="button">
+                <i class="fa-solid fa-chart-pie me-2"></i>BÁO CÁO VÀ LỢI NHUẬN
+            </button>
+        </li>
+    </ul>
+</header>
+
+<!-- MAIN CONTAINER -->
+<main class="main-container">
+    <div class="tab-content" id="mainTabContent">
+
+        <!-- ================= MỤC 1: TÀI KHOẢN VÀ MẬT KHẨU ================= -->
+        <div class="tab-pane fade show active" id="account-sec" role="tabpanel">
+            <div class="d-flex flex-wrap gap-2 mb-4 justify-content-center">
+                <button class="btn btn-orange" onclick="openAddPhongModal()"><i class="fa-solid fa-door-open me-2"></i>1. Thêm Phòng Học</button>
+                <button class="btn btn-orange" onclick="openAddGVModal()"><i class="fa-solid fa-user-plus me-2"></i>2. Thêm Giáo Viên</button>
+                <button class="btn btn-orange" onclick="openAddLopModal()"><i class="fa-solid fa-chalkboard-user me-2"></i>3. Thêm Lớp Học</button>
+                <button class="btn btn-orange" onclick="openAddHSModal()"><i class="fa-solid fa-graduation-cap me-2"></i>4. Thêm Học Sinh</button>
+                <button class="btn btn-orange" onclick="openModal('modalAddBank')"><i class="fa-solid fa-building-columns me-2"></i>5. Thêm Tài Khoản Ngân Hàng</button>
+                <button class="btn btn-green" onclick="openModal('modalDoiMK')"><i class="fa-solid fa-key me-2"></i>6. Đổi Mật Khẩu</button>
+            </div>
+
+            <!-- 1. Danh sách Phòng học -->
+            <div class="custom-card">
+                <div class="card-header-title"><i class="fa-solid fa-school fa-lg"></i> DANH SÁCH PHÒNG HỌC (Rê chuột lắc lư - Nhấp vào tên để Sửa/Xóa)</div>
+                <div class="row" id="roomListGrid"></div>
+            </div>
+
+            <!-- 2. Danh sách Giáo viên -->
+            <div class="custom-card">
+                <div class="card-header-title"><i class="fa-solid fa-chalkboard-teacher fa-lg"></i> DANH SÁCH GIÁO VIÊN (Rê chuột lắc lư - Nhấp vào tên để Sửa/Xóa)</div>
+                <div class="table-responsive-custom">
+                    <table class="table table-hover table-balanced align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Mã GV</th>
+                                <th style="width: 160px;">Họ và Tên</th>
+                                <th style="width: 140px;">Giới tính / Ngày sinh</th>
+                                <th style="width: 100px;">Trình độ</th>
+                                <th style="width: 180px;">Địa chỉ cũ / Địa chỉ mới</th>
+                                <th style="width: 150px;">SĐT / Ngày làm việc</th>
+                                <th style="width: 120px;">Tình trạng</th>
+                                <th style="width: 200px;">Tài khoản hệ thống</th>
+                                <th>Tài liệu cấp</th>
+                                <th style="width: 90px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableGVBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. Danh sách Lớp Học -->
+            <div class="custom-card">
+                <div class="card-header-title"><i class="fa-solid fa-users-rectangle fa-lg"></i> DANH SÁCH LỚP HỌC (Rê chuột lắc lư - Nhấp vào tên để Sửa/Xóa)</div>
+                <div class="table-responsive-custom">
+                    <table class="table table-hover table-balanced align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 100px;">Mã Lớp</th>
+                                <th style="width: 250px;">Môn / Tên Lớp</th>
+                                <th style="width: 130px;">Học phí gốc</th>
+                                <th style="width: 130px;">Số buổi/Tuần</th>
+                                <th style="width: 130px;">Ngày Bắt Đầu</th>
+                                <th style="width: 130px;">Ngày Kết Thúc</th>
+                                <th style="width: 120px;">Trạng thái</th>
+                                <th style="width: 100px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableLopBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. Danh sách Học Sinh -->
+            <div class="custom-card">
+                <div class="card-header-title"><i class="fa-solid fa-user-graduate fa-lg"></i> DANH SÁCH HỌC SINH (Rê chuột lắc lư - Nhấp vào tên để Sửa/Xóa)</div>
+                <div class="table-responsive-custom">
+                    <table class="table table-hover table-balanced align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 90px;">Mã HS</th>
+                                <th style="width: 160px;">Họ và Tên</th>
+                                <th style="width: 140px;">Ngày sinh / Giới tính</th>
+                                <th style="width: 160px;">Trường / Lớp riêng</th>
+                                <th style="width: 150px;">Lớp Trung Tâm</th>
+                                <th style="width: 120px;">Ngày nhập học</th>
+                                <th style="width: 180px;">Phụ huynh / SĐT / Địa chỉ</th>
+                                <th style="width: 130px;">Quà tặng cấp</th>
+                                <th style="width: 200px;">Tài khoản hệ thống</th>
+                                <th style="width: 90px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableHSBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 5. Danh sách Tài Khoản Ngân Hàng -->
+            <div class="custom-card">
+                <div class="card-header-title"><i class="fa-solid fa-building-columns fa-lg"></i> DANH SÁCH TÀI KHOẢN NGÂN HÀNG (Rê chuột lắc lư - Nhấp vào tên để Sửa/Xóa)</div>
+                <div class="table-responsive-custom">
+                    <table class="table table-hover table-balanced text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>Ngân Hàng</th>
+                                <th>Số Tài Khoản</th>
+                                <th>Tên Chủ Tài Khoản</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBankBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= MỤC 2: THỜI KHÓA BIỂU ================= -->
+        <div class="tab-pane fade" id="tkb-sec" role="tabpanel">
+            <div class="custom-card">
+                <div class="row g-3 align-items-end mb-4">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-calendar me-1 text-orange"></i> Năm:</label>
+                        <select class="form-select shadow-sm" id="tkbYear" onchange="onYearMonthChange()"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-calendar-month me-1 text-orange"></i> Tháng:</label>
+                        <select class="form-select shadow-sm" id="tkbMonth" onchange="onYearMonthChange()"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-calendar-week me-1 text-orange"></i> Chọn Tuần:</label>
+                        <select class="form-select border-primary shadow-sm" id="tkbWeek" onchange="renderTKB()"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-door-open me-1 text-orange"></i> Lọc Phòng Học:</label>
+                        <select class="form-select border-warning shadow-sm" id="selectPhongTKB" onchange="renderTKB()">
+                            <option value="ALL">--- TẤT CẢ PHÒNG ---</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-user-tie me-1 text-orange"></i> Lọc Giáo Viên:</label>
+                        <select class="form-select border-info shadow-sm" id="selectGVTKB" onchange="renderTKB()">
+                            <option value="ALL">--- TẤT CẢ GV ---</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-orange w-100 shadow-sm" onclick="openAddLichModal()">
+                            <i class="fa-solid fa-plus-circle me-1"></i> Xếp Lịch Mới
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-3 p-2 bg-light rounded-3 border" id="roomLegendContainer"></div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 p-3 bg-light rounded-4 border">
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <div class="btn-group shadow-sm">
+                            <button class="btn btn-outline-orange" onclick="changeWeek(-1)"><i class="fa-solid fa-chevron-left me-1"></i> Tuần trước</button>
+                            <button class="btn btn-orange" onclick="setCurrentWeek()"><i class="fa-solid fa-clock me-1"></i> Tuần này</button>
+                            <button class="btn btn-outline-orange" onclick="changeWeek(1)">Tuần sau <i class="fa-solid fa-chevron-right ms-1"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm" id="weekRangeLabel">Đang tải lịch...</span>
+                        <div class="mt-1"><span class="badge bg-info text-dark" id="dailyShiftCountBadge"><i class="fa-solid fa-school-flag me-1"></i> Số ca học hôm nay: 0</span></div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary shadow-sm" onclick="copyScheduleFromPrevWeek()">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Chép Lịch Tuần Trước
+                        </button>
+                        <button class="btn btn-info text-white shadow-sm" onclick="copyScheduleFromNextWeek()">
+                            <i class="fa-solid fa-arrow-left-to-bracket me-1"></i> Chép Lịch Tuần Sau
+                        </button>
+                        <button class="btn btn-danger shadow-sm" onclick="deleteCurrentWeekSchedule()">
+                            <i class="fa-solid fa-trash-can me-1"></i> Xóa Lịch Tuần Này
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="tkb-table">
+                        <thead>
+                            <tr id="tkbHeaderRow">
+                                <th style="width: 130px;">Ca / Thời Gian</th>
+                                <th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>Chủ Nhật</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tkbGridBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= MỤC 3: BÁO CÁO VÀ LỢI NHUẬN ================= -->
+        <div class="tab-pane fade" id="report-sec" role="tabpanel">
+            
+            <div class="custom-card bg-light border-warning mb-4">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <span class="fw-bold text-orange fs-5"><i class="fa-solid fa-lock me-2"></i> LỌC VÀ KHÓA THỜI GIAN BÁO CÁO:</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="fw-bold">Tên kỳ khóa:</label>
+                            <input type="text" class="form-control" id="lockPeriodName" placeholder="VD: Kỳ Báo Cáo Tháng 7/2026" style="width: 220px;">
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="fw-bold">Từ ngày:</label>
+                            <input type="date" class="form-control" id="reportLockFrom" style="width: 160px;">
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="fw-bold">Đến ngày:</label>
+                            <input type="date" class="form-control" id="reportLockTo" style="width: 160px;">
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-orange fw-bold" onclick="addNewLockPeriod()"><i class="fa-solid fa-lock me-1"></i> Chốt & Khóa Kỳ Này</button>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-secondary mb-2"><i class="fa-solid fa-list-check me-1"></i> Danh sách các Kỳ Báo Cáo đã Khóa (Nhấn vào Kỳ để xem riêng tài chính):</h6>
+                <div class="row g-2" id="lockPeriodsGrid"></div>
+            </div>
+
+            <!-- 1. BÁO CÁO LƯƠNG GIÁO VIÊN -->
+            <div class="custom-card mb-4">
+                <div class="card-header-title"><i class="fa-solid fa-file-invoice-dollar fa-lg"></i> 1. BÁO CÁO LƯƠNG GIÁO VIÊN</div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Chọn Giáo viên tạo báo cáo:</label>
+                        <select class="form-select" id="bcSelectGV" onchange="renderBaoCaoLuongGV()"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Phụ cấp (VNĐ):</label>
+                        <input type="number" class="form-control" id="bcPhuCap" value="0" oninput="renderBaoCaoLuongGV()">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Khấu trừ (VNĐ):</label>
+                        <input type="number" class="form-control" id="bcKhauTru" value="0" oninput="renderBaoCaoLuongGV()">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded border mb-3">
+                    <div class="row text-center">
+                        <div class="col-md-3">Số ca được giao: <strong id="bcCaDuocGiao">0</strong> ca</div>
+                        <div class="col-md-3">Số ca đã điểm danh: <strong id="bcCaDaDiemDanh" class="text-primary">0</strong> ca</div>
+                        <div class="col-md-3">Tổng lương dạy ca: <strong id="bcTongLuongCa" class="text-danger">0 VNĐ</strong></div>
+                        <div class="col-md-3">Thực nhận: <strong id="bcThucNhanGV" class="text-success fs-5">0 VNĐ</strong></div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-orange mb-2">Danh sách chi tiết các ca dạy trong tháng của giáo viên:</h6>
+                <div class="table-responsive-custom mb-3">
+                    <table class="table table-bordered table-sm text-center align-middle m-0">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Thời gian / Ca</th>
+                                <th>Phòng học</th>
+                                <th>Lớp học</th>
+                                <th>Trạng thái điểm danh</th>
+                                <th>Số tiền lương ca</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bcChiTietCaBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-orange" onclick="previewPDFGV()"><i class="fa-solid fa-file-pdf me-1"></i> Xem PDF Lương Mẫu Chuẩn Đầy Đủ</button>
+                    <button class="btn btn-orange fw-bold" onclick="saveLuongChoGiaoVien()"><i class="fa-solid fa-floppy-disk me-1"></i> Bấm Lưu Lương Giáo Viên</button>
+                </div>
+
+                <h6 class="fw-bold text-orange mt-4 mb-2">Danh sách lương tất cả giáo viên (Nhấp vào để sửa/xóa):</h6>
+                <div class="table-responsive-custom">
+                    <table class="table table-bordered table-hover text-center align-middle m-0">
+                        <thead style="background: var(--primary-orange); color: white;">
+                            <tr>
+                                <th>Mã GV</th>
+                                <th>Tên Giáo Viên</th>
+                                <th>Số Ca Dạy</th>
+                                <th>Phụ Cấp</th>
+                                <th>Khấu Trừ</th>
+                                <th>Thực Nhận</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableSavedSalaryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. BÁO CÁO THEO LỚP HỌC VÀ HỌC SINH -->
+            <div class="custom-card mb-4">
+                <div class="card-header-title"><i class="fa-solid fa-receipt fa-lg"></i> 2. BÁO CÁO THEO LỚP HỌC VÀ HỌC SINH</div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Chọn Lớp Học xem báo cáo:</label>
+                        <select class="form-select border-primary fw-bold" id="bcSelectLop" onchange="renderBaoCaoHocPhiLop()"></select>
+                    </div>
+                </div>
+
+                <div class="table-responsive-custom mb-4">
+                    <table class="table table-bordered table-balanced align-middle text-center" id="tableHocPhiLop">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã Phiếu Thu</th>
+                                <th>Mã HS</th>
+                                <th>Tên Học Sinh</th>
+                                <th>Số buổi của lớp</th>
+                                <th>Số buổi đã điểm danh</th>
+                                <th>Học phí lớp</th>
+                                <th>Giảm trừ</th>
+                                <th>Cần thu</th>
+                                <th>Đã thu (Lắc lư để xem LS & Thu tiền)</th>
+                                <th>Còn lại cần</th>
+                                <th>Trạng thái & Chuyển dư</th>
+                                <th>Mã QR VietQR Thanh Toán</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableHocPhiLopBody"></tbody>
+                    </table>
+                </div>
+
+                <h6 class="fw-bold text-orange mb-2">Quản lý tổng thể thu chi theo lớp:</h6>
+                <div class="table-responsive-custom">
+                    <table class="table table-bordered table-balanced align-middle text-center">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Mã Lớp / Tên Lớp (Nhấp chuột để xem Đã thu / Chưa thu)</th>
+                                <th>Tổng số tiền cần thu</th>
+                                <th>Tổng số tiền chưa thu</th>
+                                <th>Còn lại</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableClassSummaryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. THÊM CÁC KHOẢN THU / CHI KHÁC -->
+            <div class="custom-card mb-4">
+                <div class="card-header-title d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-money-bill-transfer fa-lg"></i> 3. KHOẢN THU / CHI KHÁC</span>
+                    <button class="btn btn-orange btn-sm" onclick="openModal('modalAddThuChi')"><i class="fa-solid fa-plus me-1"></i> Thêm Khoản Thu/Chi</button>
+                </div>
+                <div class="table-responsive-custom">
+                    <table class="table table-bordered table-hover align-middle text-center">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Ngày Thu/Chi</th>
+                                <th>Loại Thu/Chi</th>
+                                <th>Mục / Nội Dung</th>
+                                <th>Số Tiền (VNĐ)</th>
+                                <th>Ghi Chú</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableThuChiBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. BÁO CÁO LỢI NHUẬN -->
+            <div class="custom-card mb-4">
+                <div class="card-header-title"><i class="fa-solid fa-chart-line fa-lg"></i> 4. BÁO CÁO LỢI NHUẬN TRUNG TÂM</div>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <div class="kpi-card bg-success">
+                            <div class="kpi-title"><i class="fa-solid fa-wallet me-1"></i> Tổng Thu Học Phí</div>
+                            <div class="kpi-value" id="lnDaThu">0 đ</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card bg-info">
+                            <div class="kpi-title"><i class="fa-solid fa-hand-holding-dollar me-1"></i> Tổng Thu Khác</div>
+                            <div class="kpi-value" id="lnThuKhac">0 đ</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card bg-warning text-dark">
+                            <div class="kpi-title"><i class="fa-solid fa-user-tie me-1"></i> Chi Lương Giáo Viên</div>
+                            <div class="kpi-value" id="lnChiLuong">0 đ</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card bg-danger">
+                            <div class="kpi-title"><i class="fa-solid fa-file-invoice me-1"></i> Chi Phí Khác</div>
+                            <div class="kpi-value" id="lnChiKhac">0 đ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded border mb-3 text-center">
+                    <div class="text-muted fw-bold mb-1">LỢI NHUẬN THỰC TẾ TRUNG TÂM (TỔNG THU - TỔNG CHI)</div>
+                    <div class="text-success fs-2 fw-extrabold" id="lnLoiNhuanRong">0 VNĐ</div>
+                </div>
+
+                <button class="btn btn-orange fw-bold" onclick="previewPDFLoiNhuan()">
+                    <i class="fa-solid fa-file-pdf me-1"></i> Xem PDF Báo Cáo Lợi Nhuận Chi Tiết
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+</main>
+
+<!-- ================= ALL SYSTEM MODALS ================= -->
+
+<!-- Modal 1. Thêm/Sửa Phòng Học -->
+<div class="modal fade" id="modalAddPhong" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="titleModalPhong"><i class="fa-solid fa-door-open me-2"></i>Thêm Phòng Học</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddPhong" onsubmit="savePhong(event)">
+                    <input type="hidden" id="editPhongIndex" value="-1">
+                    <div class="mb-3">
+                        <label class="form-label">Mã Phòng (Tự sinh)</label>
+                        <input type="text" class="form-control bg-light" id="phongMa" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên Phòng Học</label>
+                        <input type="text" class="form-control" id="phongTen" placeholder="VD: Phòng Sư Tử" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sức Chứa (Học sinh)</label>
+                        <input type="number" class="form-control" id="phongSucChua" value="20" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gán Icon Động Vật (Tự sinh/Chọn)</label>
+                        <select class="form-select" id="phongIcon">
+                            <option value="🦁">🦁 Sư Tử</option>
+                            <option value="🐯">🐯 Hổ Con</option>
+                            <option value="🐘">🐘 Voi Con</option>
+                            <option value="🐼">🐼 Gấu Trúc</option>
+                            <option value="🐬">🐬 Cá Cảnh</option>
+                            <option value="🦊">🦊 Cáo Đỏ</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-orange w-100 fw-bold">Lưu Phòng Học</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2. Thêm/Sửa Giáo Viên -->
+<div class="modal fade" id="modalAddGV" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="titleModalGV"><i class="fa-solid fa-user-plus me-2"></i>Thêm Giáo Viên Mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddGV" onsubmit="saveGV(event)">
+                    <input type="hidden" id="editGVIndex" value="-1">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Mã GV (Tự sinh)</label>
+                            <input type="text" class="form-control bg-light" id="gvMa" readonly>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Họ và Tên</label>
+                            <input type="text" class="form-control" id="gvTen" required oninput="generateGVEmail()">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Giới tính</label>
+                            <select class="form-select" id="gvGioiTinh">
+                                <option>Nam</option><option>Nữ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" class="form-control" id="gvNgaySinh" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Trình độ</label>
+                            <select class="form-select" id="gvHocVan">
+                                <option value="Đại học" selected>Đại học</option>
+                                <option value="Cao đẳng">Cao đẳng</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Điện thoại</label>
+                            <input type="text" class="form-control" id="gvPhone" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Địa chỉ cũ</label>
+                            <input type="text" class="form-control" id="gvDcCu">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Địa chỉ sau sáp nhập</label>
+                            <input type="text" class="form-control" id="gvDcMoi">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày bắt đầu làm việc</label>
+                            <input type="date" class="form-control" id="gvNgayBD" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tình trạng làm việc</label>
+                            <select class="form-select" id="gvTinhTrang" onchange="toggleNgayNghiGV()">
+                                <option value="Đang làm việc">Đang làm việc</option>
+                                <option value="Nghỉ việc">Nghỉ việc</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="boxNgayNghiGV" style="display: none;">
+                            <label class="form-label text-danger">Ngày nghỉ việc</label>
+                            <input type="date" class="form-control border-danger" id="gvNgayNghi">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mức lương dạy (VNĐ/Ca)</label>
+                            <input type="number" class="form-control" id="gvLuong" value="150000" required>
+                        </div>
+
+                        <!-- TÀI KHOẢN ĐĂNG NHẬP GIÁO VIÊN -->
+                        <div class="col-12 border-top pt-2">
+                            <h6 class="fw-bold text-primary"><i class="fa-solid fa-key me-1"></i> Tài Khoản Đăng Nhập Hệ Thống:</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small">Email Giáo Viên</label>
+                                    <input type="email" class="form-control" id="gvMail" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Mật Khẩu</label>
+                                    <input type="text" class="form-control" id="gvPass" value="123456" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TÀI LIỆU CẤP -->
+                        <div class="col-12 border-top pt-2">
+                            <h6 class="fw-bold text-orange"><i class="fa-solid fa-folder-open me-1"></i> Tài liệu cấp cho Giáo Viên:</h6>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label small">Tên tài liệu</label>
+                                    <input type="text" class="form-control form-control-sm" id="tlTen" placeholder="VD: Giáo Trình" oninput="suggestCodeTaiLieu()">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Mã code</label>
+                                    <input type="text" class="form-control form-control-sm bg-light" id="tlCode" readonly>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Số lượng</label>
+                                    <input type="number" class="form-control form-control-sm" id="tlSoLuong" value="1">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Ngày nhận</label>
+                                    <input type="date" class="form-control form-control-sm" id="tlNgayNhan">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Ngày trả</label>
+                                    <input type="date" class="form-control form-control-sm" id="tlNgayTra">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-sm btn-orange w-100" onclick="addTaiLieuGV()">Thêm</button>
+                                </div>
+                            </div>
+                            <div id="taiLieuGVTagContainer" class="mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-orange px-4 fw-bold">Lưu Giáo Viên</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 3. Thêm/Sửa Lớp Học -->
+<div class="modal fade" id="modalAddLop" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="titleModalLop"><i class="fa-solid fa-chalkboard-user me-2"></i>Thêm Lớp Học Mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddLop" onsubmit="saveLop(event)">
+                    <input type="hidden" id="editLopIndex" value="-1">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Mã Lớp (Tự sinh)</label>
+                            <input type="text" class="form-control bg-light" id="lopMa" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Môn Học (Chọn hoặc Nhập mới)</label>
+                            <input type="text" class="form-control" id="lopMonInput" list="monHocDataList" placeholder="Nhập/chọn môn" required onchange="generateLopCode()">
+                            <datalist id="monHocDataList"></datalist>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tên Lớp Học</label>
+                            <input type="text" class="form-control" id="lopTen" placeholder="VD: Tiếng Anh Mầm Non 1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Học Phí Lớp (VNĐ)</label>
+                            <input type="number" class="form-control" id="lopHocPhi" value="800000" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Số buổi / Tuần</label>
+                            <select class="form-select" id="lopSoBuoi">
+                                <option value="12">3 buổi/tuần (12 buổi/kỳ)</option>
+                                <option value="8">2 buổi/tuần (8 buổi/kỳ)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ngày bắt đầu dạy</label>
+                            <input type="date" class="form-control" id="lopNgayBD" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày kết thúc dạy (Nếu có)</label>
+                            <input type="date" class="form-control" id="lopNgayKT">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gán Giáo Viên Phụ Trách</label>
+                            <select class="form-select" id="lopGVSelect" required></select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-orange w-100 mt-4 fw-bold">Lưu Lớp Học</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 4. Thêm/Sửa Học Sinh -->
+<div class="modal fade" id="modalAddHS" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="titleModalHS"><i class="fa-solid fa-graduation-cap me-2"></i>Thêm Học Sinh Mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddHS" onsubmit="saveHS(event)">
+                    <input type="hidden" id="editHSIndex" value="-1">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Mã HS (Tự sinh)</label>
+                            <input type="text" class="form-control bg-light" id="hsMa" readonly>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Họ và Tên Học Sinh</label>
+                            <input type="text" class="form-control" id="hsTen" required oninput="generateHSEmail()">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Giới tính</label>
+                            <select class="form-select" id="hsGioiTinh">
+                                <option>Nam</option><option>Nữ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" class="form-control" id="hsNgaySinh" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hiện học tại Trường</label>
+                            <input type="text" class="form-control" id="hsTruong" placeholder="Tiểu học M'Đrắk">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Lớp riêng ở trường</label>
+                            <input type="text" class="form-control" id="hsLopRieng" placeholder="VD: Lớp 3A1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Xếp vào Lớp Trung Tâm</label>
+                            <select class="form-select" id="hsLopSelect" required></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày bắt đầu nhập học</label>
+                            <input type="date" class="form-control" id="hsNgayNhapHoc" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Họ tên Phụ huynh</label>
+                            <input type="text" class="form-control" id="hsTenPH">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" id="hsPhone">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" class="form-control" id="hsDiaChi">
+                        </div>
+
+                        <!-- Hàng quà tặng cho học sinh -->
+                        <div class="col-12 border-top pt-2">
+                            <h6 class="fw-bold text-orange"><i class="fa-solid fa-gift me-1"></i> Quà tặng học sinh:</h6>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-5"><input type="text" class="form-control form-control-sm" id="quaTen" placeholder="Tên quà tặng"></div>
+                                <div class="col-md-3"><input type="number" class="form-control form-control-sm" id="quaSL" value="1"></div>
+                                <div class="col-md-3"><input type="date" class="form-control form-control-sm" id="quaNgay"></div>
+                                <div class="col-md-1"><button type="button" class="btn btn-sm btn-orange w-100" onclick="addQuaItem()">Add</button></div>
+                            </div>
+                            <div id="quaTagContainer" class="mt-2"></div>
+                        </div>
+
+                        <!-- Hàng tạo tài khoản học sinh -->
+                        <div class="col-12 border-top pt-2">
+                            <h6 class="fw-bold text-primary"><i class="fa-solid fa-key me-1"></i> Tạo Tài Khoản Đăng Nhập Trang Chủ:</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small">Email gợi ý</label>
+                                    <input type="email" class="form-control" id="hsMail" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Mật khẩu</label>
+                                    <input type="text" class="form-control" id="hsPass" value="123456" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-orange w-100 mt-4 fw-bold">Lưu Học Sinh</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 5. Thêm/Sửa Tài Khoản Ngân Hàng -->
+<div class="modal fade" id="modalAddBank" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-building-columns me-2"></i>Thêm Tài Khoản Ngân Hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddBank" onsubmit="saveBank(event)">
+                    <input type="hidden" id="editBankIndex" value="-1">
+                    <div class="mb-3">
+                        <label class="form-label">Tên Ngân Hàng</label>
+                        <input type="text" class="form-control" id="bankCode" placeholder="MBBank, VCB, BIDV..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số Tài Khoản</label>
+                        <input type="text" class="form-control" id="bankAccNo" placeholder="Nhập số tài khoản" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên Chủ Tài Khoản</label>
+                        <input type="text" class="form-control" id="bankAccName" placeholder="NGUYEN VAN A" required>
+                    </div>
+                    <button type="submit" class="btn btn-orange w-100 fw-bold">Lưu Tài Khoản Ngân Hàng</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 6. Đổi Mật Khẩu -->
+<div class="modal fade" id="modalDoiMK" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-key me-2"></i>Đổi Mật Khẩu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formDoiMK" onsubmit="confirmDoiMK(event)">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn Tài Khoản Cần Đổi</label>
+                        <select class="form-select" id="mkUserSelect" onchange="onUserSelectChange()"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật Khẩu Cũ</label>
+                        <input type="text" class="form-control bg-light" id="mkOldPass" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật Khẩu Mới</label>
+                        <input type="password" class="form-control" id="mkNewPass" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Xác Nhận Mật Khẩu Mới</label>
+                        <input type="password" class="form-control" id="mkConfirmPass" required>
+                    </div>
+                    <button type="submit" class="btn btn-green w-100 fw-bold">Lưu Mật Khẩu Mới & Đồng Bộ System</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Form Thu Tiền Học Phí -->
+<div class="modal fade" id="modalNopTien" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-cash-register me-2"></i>Lịch Sử & Form Thu Tiền</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNopTien" onsubmit="saveNopTienGiaoDich(event)">
+                    <input type="hidden" id="nopTienEditIndex" value="-1">
+                    <input type="hidden" id="nopTienHsMa">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mã Phiếu Thu (Tự tạo)</label>
+                        <input type="text" class="form-control bg-light fw-bold" id="nopTienMaPhieu" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Học Sinh</label>
+                        <input type="text" class="form-control bg-light fw-bold text-primary" id="nopTienTenHs" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số Tiền Thu (VNĐ)</label>
+                        <input type="number" class="form-control border-success fw-bold text-success fs-5" id="nopTienSoTien" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ngày Thu Tiền</label>
+                        <input type="date" class="form-control border-success" id="nopTienNgay" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Người Thu Tiền</label>
+                        <input type="text" class="form-control" id="nopTienNguoiThu" value="Admin Trung Tâm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nội Dung Thu</label>
+                        <input type="text" class="form-control" id="nopTienNoiDung" placeholder="Nộp học phí..." required>
+                    </div>
+                    <button type="submit" class="btn btn-green w-100 fw-bold py-2">Xác Nhận Lưu Thu Tiền</button>
+                </form>
+
+                <hr>
+                <h6 class="fw-bold text-orange">Lịch Sử Các Lần Thu Tiền Của Học Sinh Này:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>Mã Phiếu</th>
+                                <th>Ngày Thu</th>
+                                <th>Số Tiền</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hsHistoryThuBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xếp / Sửa Lịch TKB -->
+<div class="modal fade" id="modalAddLichSingle" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLichTitle"><i class="fa-solid fa-calendar-plus me-2"></i>Xếp Lịch Học</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddLich" onsubmit="saveLichSingle(event)">
+                    <input type="hidden" id="editLichId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn Phòng Học</label>
+                        <select class="form-select" id="lichPhongSelect" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn Lớp Học</label>
+                        <select class="form-select" id="lichLopSelect" onchange="onLichLopChange()" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn Giáo Viên Phụ Trách</label>
+                        <select class="form-select" id="lichGVSelect" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn Ngày Trong Tuần:</label>
+                        <input type="date" class="form-control" id="lichNgaySpecific" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn Ca Học</label>
+                        <select class="form-select" id="lichCaSelect">
+                            <option value="C1">Ca 1 Sáng (08h00 - 09h30)</option>
+                            <option value="C2">Ca 2 Sáng (09h30 - 11h00)</option>
+                            <option value="C3">Ca 1 Chiều (14h00 - 15h30)</option>
+                            <option value="C4">Ca 2 Chiều (15h30 - 17h00)</option>
+                            <option value="C5">Ca 1 Tối (17h30 - 19h00)</option>
+                            <option value="C6">Ca 2 Tối (19h00 - 20h30)</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-danger w-50" id="btnDeleteSingleLich" style="display: none;" onclick="deleteSingleLich()">Xóa Lịch Ca Này</button>
+                        <button type="submit" class="btn btn-orange w-100 fw-bold" id="btnSaveLich">Xác Nhận Xếp Lịch</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Điểm Danh Học Sinh -->
+<div class="modal fade" id="modalDiemDanh" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-clipboard-user me-2"></i>Điểm Danh Lớp Học</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="ddInfoClass" class="fw-bold text-orange mb-1">Lớp: ---</h6>
+                <p class="small text-muted mb-3" id="ddInfoTime">Thời gian: ---</p>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle text-center">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Mã HS</th>
+                                <th>Tên Học Sinh</th>
+                                <th>Có Mặt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ddHocSinhListBody"></tbody>
+                    </table>
+                </div>
+
+                <button class="btn btn-green w-100 mt-2 fw-bold" onclick="saveDiemDanh()"><i class="fa-solid fa-check me-1"></i> Lưu Điểm Danh & Đồng Bộ Hệ Thống</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Thu / Chi Khác -->
+<div class="modal fade" id="modalAddThuChi" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-money-bill-wave me-2"></i>Thêm Khoản Thu / Chi Khác</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddThuChi" onsubmit="saveThuChi(event)">
+                    <div class="mb-3">
+                        <label class="form-label">Loại Phân Loại</label>
+                        <select class="form-select" id="tcLoai">
+                            <option value="CHI">Chi Phí (-)</option>
+                            <option value="THU">Khoản Thu (+)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mục Chi Phí / Nội Dung</label>
+                        <input type="text" class="form-control" id="tcMuc" placeholder="Tiền điện, Tiền nước, Mua giáo trình..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số Tiền (VNĐ)</label>
+                        <input type="number" class="form-control" id="tcSoTien" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày Thực Hiện</label>
+                        <input type="date" class="form-control" id="tcNgay" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi Chú</label>
+                        <input type="text" class="form-control" id="tcGhiChu">
+                    </div>
+                    <button type="submit" class="btn btn-orange w-100 fw-bold">Lưu Khoản Thu/Chi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem Trước & Xuất PDF -->
+<div class="modal fade" id="modalPreviewPDF" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-file-pdf me-2"></i>Xem Trước File PDF Báo Cáo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="pdfRenderContainer">
+                    <div id="pdfTargetContent" class="pdf-template"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-orange fw-bold" onclick="downloadPDFFromPreview()"><i class="fa-solid fa-download me-1"></i> Tải File PDF Báo Cáo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Đăng xuất -->
+<div class="modal fade" id="modalLogout" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <div class="modal-body">
+                <i class="fa-solid fa-right-from-bracket fa-4x text-danger mb-3"></i>
+                <h4 class="fw-bold text-dark mb-2">XÁC NHẬN ĐĂNG XUẤT?</h4>
+                <p class="text-muted">Quay lại trang chính index.html?</p>
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button class="btn btn-secondary px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button class="btn btn-orange px-4 rounded-pill fw-bold" onclick="executeLogout()">Đăng xuất ngay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ================= HỆ THỐNG ĐỒNG BỘ ĐÁM MÂY FIRESTORE ================= */
+
+let currentTaiLieuGVList = [];
+let currentQuaHSList = [];
+let currentDiemDanhItem = null;
+let activeLockPeriodId = null;
+
+async function cloudSave(key, dataObject) {
+    localStorage.setItem(key, JSON.stringify(dataObject));
+    if (window.db && window.FirestoreDeps) {
+        try {
+            const { doc, setDoc } = window.FirestoreDeps;
+            await setDoc(doc(window.db, "systemData", key), { payload: JSON.stringify(dataObject) });
+        } catch (e) {
+            console.error("Lỗi đồng bộ mây:", e);
+        }
+    }
+}
+
+async function cloudLoad(key) {
+    if (window.db && window.FirestoreDeps) {
+        try {
+            const { doc, getDoc } = window.FirestoreDeps;
+            const snap = await getDoc(doc(window.db, "systemData", key));
+            if (snap.exists() && snap.data().payload) {
+                const cloudData = JSON.parse(snap.data().payload);
+                localStorage.setItem(key, JSON.stringify(cloudData));
+                return cloudData;
+            }
+        } catch (e) {
+            console.error("Lỗi tải từ mây:", e);
+        }
+    }
+    const local = localStorage.getItem(key);
+    return local ? JSON.parse(local) : null;
+}
+
+function showToast(msg) {
+    document.getElementById('toastMessage').innerHTML = `<i class="fa-solid fa-circle-check me-2"></i>${msg}`;
+    const toastEl = document.getElementById('toastNotification');
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+}
+
+function openModal(modalId) {
+    const el = document.getElementById(modalId);
+    if (el) {
+        const instance = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+        instance.show();
+    }
+}
+
+/* HÀM ĐÓNG MODAL AN TOÀN TRÁNH LỖI INSTANCE VÀ KẸT BACKDROP */
+function closeModalSafe(modalId) {
+    const el = document.getElementById(modalId);
+    if (el) {
+        const instance = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+        instance.hide();
+    }
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+}
+
+function showLogoutModal() { openModal('modalLogout'); }
+function executeLogout() { window.location.href = 'index.html'; }
+
+function removeAccents(str) {
+    if (!str) return '';
+    return str.normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+              .toLowerCase()
+              .trim();
+}
+
+function generateSmartEmail(fullName) {
+    if (!fullName || !fullName.trim()) return '';
+    const cleanStr = removeAccents(fullName).replace(/[^a-z0-9\s]/g, '');
+    const parts = cleanStr.split(/\s+/);
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0] + '@thandong.com';
+
+    const lastName = parts[parts.length - 1];
+    let initials = '';
+    for (let i = 0; i < parts.length - 1; i++) {
+        initials += parts[i].charAt(0);
+    }
+    return (lastName + initials + '@thandong.com');
+}
+
+function generateHSEmail() {
+    const ten = document.getElementById('hsTen').value;
+    document.getElementById('hsMail').value = generateSmartEmail(ten);
+}
+
+function generateGVEmail() {
+    const ten = document.getElementById('gvTen').value;
+    document.getElementById('gvMail').value = generateSmartEmail(ten);
+}
+
+function suggestCodeTaiLieu() {
+    const ten = document.getElementById('tlTen').value;
+    if (ten) {
+        const code = 'TL-' + removeAccents(ten).replace(/[^a-z0-9]/g, '').toUpperCase().slice(0, 8);
+        document.getElementById('tlCode').value = code;
+    }
+}
+
+function getFirstMondayOfMonth(year, month) {
+    const firstDay = new Date(year, month - 1, 1);
+    const dayOfWeek = firstDay.getDay(); 
+    const diffToMonday = (dayOfWeek === 0) ? 1 : (dayOfWeek === 1 ? 0 : 8 - dayOfWeek);
+    return new Date(year, month - 1, 1 + diffToMonday);
+}
+
+function getWeekDates(year, month, weekIndex) {
+    const firstMonday = getFirstMondayOfMonth(year, month);
+    const startOfWeek = new Date(firstMonday);
+    startOfWeek.setDate(firstMonday.getDate() + (weekIndex - 1) * 7);
+
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
+        weekDates.push(d);
+    }
+    return weekDates;
+}
+
+function formatDateISO(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+async function initData() {
+    if (!localStorage.getItem('giaoVienList')) {
+        await cloudSave('giaoVienList', [
+            { ma: 'GV001', ten: 'Trần Vũ Lực', gioiTinh: 'Nam', ngaySinh: '1996-10-12', hocVan: 'Đại học', dcCu: 'M\'Đrắk', dcMoi: 'M\'Đrắk', phone: '0905123456', ngayBD: '2024-01-15', tinhTrang: 'Đang làm việc', luong: 150000, mail: 'luctv@thandong.com', pass: '123456', taiLieu: [] },
+            { ma: 'GV002', ten: 'Trần Thị Thu Thảo', gioiTinh: 'Nữ', ngaySinh: '1995-01-01', hocVan: 'Đại học', dcCu: 'M\'Đrắk', dcMoi: 'M\'Đrắk', phone: '0905987654', ngayBD: '2024-02-01', tinhTrang: 'Nghỉ việc', ngayNghi: '2026-06-30', luong: 160000, mail: 'thaottt@thandong.com', pass: '123456', taiLieu: [] },
+            { ma: 'GV003', ten: 'Đỗ Thị Hải Yến', gioiTinh: 'Nữ', ngaySinh: '1995-01-01', hocVan: 'Đại học', dcCu: 'M\'Đrắk', dcMoi: 'M\'Đrắk', phone: '0912345678', ngayBD: '2024-03-01', tinhTrang: 'Đang làm việc', luong: 150000, mail: 'yendth@thandong.com', pass: '123456', taiLieu: [] }
+        ]);
+    }
+
+    if (!localStorage.getItem('phongHocList')) {
+        await cloudSave('phongHocList', [
+            { ma: 'PH001', ten: 'Phòng Study Lounge', sucChua: 15, icon: '🦁' },
+            { ma: 'PH002', ten: 'Phòng Hổ Con', sucChua: 25, icon: '🐯' }
+        ]);
+    }
+    if (!localStorage.getItem('lopHocList')) {
+        await cloudSave('lopHocList', [
+            { ma: 'TA001', mon: 'Tiếng Anh', ten: 'Tiếng Anh 1 Global Success', hocPhi: 400000, soBuoi: 12, ngayBD: '2026-07-06', ngayKT: '', gvMa: 'GV001', status: 'Hoạt động' },
+            { ma: 'TA002', mon: 'Tiếng Anh', ten: 'Tiếng Anh 2 Global Success', hocPhi: 400000, soBuoi: 12, ngayBD: '2026-07-03', ngayKT: '', gvMa: 'GV002', status: 'Hoạt động' }
+        ]);
+    }
+    if (!localStorage.getItem('monHocList')) {
+        await cloudSave('monHocList', ['Tiếng Anh', 'Toán Học', 'Tiếng Việt']);
+    }
+    if (!localStorage.getItem('hocSinhList')) {
+        await cloudSave('hocSinhList', [
+            { ma: 'HS001', ten: 'Nguyễn Văn Sinh', ngaySinh: '2018-05-10', gioiTinh: 'Nam', truong: 'Tiểu học M\'Đrắk', lopRieng: '3A1', lopMa: 'TA001', ngayNhapHoc: '2026-07-01', tenPH: 'Nguyễn Văn A', phone: '0912345678', diaChi: 'M\'Đrắk', quaList: [{ ten: 'Balo Thần Đồng', sl: 1, ngay: '2026-07-01' }], mail: 'sinhnv@thandong.com', pass: '123456' }
+        ]);
+    }
+    if (!localStorage.getItem('bankAccounts')) {
+        await cloudSave('bankAccounts', [
+            { code: 'MBBank', accNo: '0905123456', accName: 'TRUNG TAM THAN DONG' }
+        ]);
+    }
+
+    if (!localStorage.getItem('lockPeriodsList')) {
+        await cloudSave('lockPeriodsList', [
+            { id: 'LOCK001', name: 'Kỳ Báo Cáo Tháng 7/2026', fromDate: '2026-07-01', toDate: '2026-07-31' },
+            { id: 'LOCK002', name: 'Kỳ Báo Cáo Tháng 8/2026', fromDate: '2026-08-01', toDate: '2026-08-31' }
+        ]);
+    }
+
+    if (!localStorage.getItem('thuTienGiaoDichList')) {
+        await cloudSave('thuTienGiaoDichList', [
+            { id: 'PT001', hsMa: 'HS001', soTien: 600000, ngayThu: '2026-07-10', nguoiThu: 'Admin', noiDung: 'Nộp học phí tháng 7 (Đóng dư 200k)' }
+        ]);
+    }
+
+    if (!localStorage.getItem('thuChiList')) { await cloudSave('thuChiList', []); }
+    if (!localStorage.getItem('tkbList')) { await cloudSave('tkbList', []); }
+    if (!localStorage.getItem('diemDanhList')) { await cloudSave('diemDanhList', []); }
+    if (!localStorage.getItem('savedSalaryList')) { await cloudSave('savedSalaryList', []); }
+}
+
+function populateSelects() {
+    const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const phongList = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const monList = JSON.parse(localStorage.getItem('monHocList')) || [];
+
+    let gvHtml = '<option value="">-- Chọn Giáo Viên --</option>';
+    let gvFilterHtml = '<option value="ALL">--- TẤT CẢ GV ---</option>';
+    gvList.forEach(g => { 
+        gvHtml += `<option value="${g.ma}">${g.ten} (${g.ma})</option>`; 
+        gvFilterHtml += `<option value="${g.ma}">${g.ten}</option>`;
+    });
+    document.getElementById('lopGVSelect').innerHTML = gvHtml;
+    document.getElementById('lichGVSelect').innerHTML = gvHtml;
+    document.getElementById('bcSelectGV').innerHTML = gvHtml;
+    document.getElementById('selectGVTKB').innerHTML = gvFilterHtml;
+
+    let phongHtml = '<option value="">-- Chọn Phòng Học --</option>';
+    let phongFilterHtml = '<option value="ALL">--- TẤT CẢ PHÒNG ---</option>';
+    phongList.forEach(p => { 
+        phongHtml += `<option value="${p.ma}">${p.icon} ${p.ten} (${p.ma})</option>`;
+        phongFilterHtml += `<option value="${p.ma}">${p.icon} ${p.ten}</option>`;
+    });
+    document.getElementById('lichPhongSelect').innerHTML = phongHtml;
+    document.getElementById('selectPhongTKB').innerHTML = phongFilterHtml;
+
+    let lopHtml = '<option value="">-- Chọn Lớp Học --</option>';
+    lopList.forEach(l => { lopHtml += `<option value="${l.ma}">${l.ten} (${l.ma})</option>`; });
+    document.getElementById('hsLopSelect').innerHTML = lopHtml;
+    document.getElementById('lichLopSelect').innerHTML = lopHtml;
+    document.getElementById('bcSelectLop').innerHTML = lopHtml;
+
+    let monDataHtml = '';
+    monList.forEach(m => { monDataHtml += `<option value="${m}">`; });
+    document.getElementById('monHocDataList').innerHTML = monDataHtml;
+
+    let userHtml = '<option value="ADMIN">Tài khoản ADMIN</option>';
+    gvList.forEach(g => { userHtml += `<option value="${g.ma}">${g.ten} (GV)</option>`; });
+    document.getElementById('mkUserSelect').innerHTML = userHtml;
+    onUserSelectChange();
+}
+
+/* ================= QUẢN LÝ CÁC KỲ KHÓA THỜI GIAN ================= */
+
+function renderLockPeriods() {
+    const list = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
+    let html = '';
+    list.forEach((p) => {
+        const isActive = p.id === activeLockPeriodId;
+        html += `<div class="col-md-4">
+            <div class="lock-period-card ${isActive ? 'active' : ''}" onclick="selectLockPeriod('${p.id}')">
+                <div>
+                    <strong class="d-block"><i class="fa-solid fa-lock me-1"></i>${p.name}</strong>
+                    <small class="text-muted"><i class="fa-solid fa-calendar-range me-1"></i>Từ ${p.fromDate} đến ${p.toDate}</small>
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="event.stopPropagation(); deleteLockPeriod('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        </div>`;
+    });
+    document.getElementById('lockPeriodsGrid').innerHTML = html || `<div class="col-12 text-muted">Chưa có kỳ báo cáo nào được khóa. Nhập ngày ở trên để thêm kỳ khóa mới.</div>`;
+}
+
+async function addNewLockPeriod() {
+    const name = document.getElementById('lockPeriodName').value.trim() || 'Kỳ Khóa Mới';
+    const fromDate = document.getElementById('reportLockFrom').value;
+    const toDate = document.getElementById('reportLockTo').value;
+
+    if (!fromDate || !toDate) {
+        alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc!');
+        return;
+    }
+
+    const list = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
+    const newObj = { id: 'LOCK' + Date.now(), name, fromDate, toDate };
+    list.push(newObj);
+    await cloudSave('lockPeriodsList', list);
+
+    showToast('Đã chốt và khóa kỳ báo cáo mới thành công!');
+    selectLockPeriod(newObj.id);
+}
+
+function selectLockPeriod(id) {
+    activeLockPeriodId = id;
+    const list = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
+    const p = list.find(item => item.id === id);
+    if (p) {
+        document.getElementById('reportLockFrom').value = p.fromDate;
+        document.getElementById('reportLockTo').value = p.toDate;
+        document.getElementById('lockPeriodName').value = p.name;
+    }
+    renderLockPeriods();
+    renderBaoCaoHocPhiLop();
+    renderBaoCaoLuongGV();
+    renderThuChiTable();
+    renderBaoCaoLoiNhuan();
+}
+
+async function deleteLockPeriod(id) {
+    if (confirm('Xóa kỳ khóa thời gian này?')) {
+        let list = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
+        list = list.filter(item => item.id !== id);
+        await cloudSave('lockPeriodsList', list);
+        if (activeLockPeriodId === id) activeLockPeriodId = null;
+        renderLockPeriods();
+        showToast('Đã xóa kỳ khóa!');
+    }
+}
+
+/* ================= 1. CHỨC NĂNG TÀI KHOẢN VÀ MẬT KHẨU ================= */
+
+function openAddPhongModal() {
+    document.getElementById('editPhongIndex').value = '-1';
+    document.getElementById('titleModalPhong').innerHTML = '<i class="fa-solid fa-door-open me-2"></i>Thêm Phòng Học';
+    const list = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    document.getElementById('phongMa').value = 'PH' + String(list.length + 1).padStart(3, '0');
+    document.getElementById('phongTen').value = '';
+    document.getElementById('phongSucChua').value = 20;
+    openModal('modalAddPhong');
+}
+
+function editPhong(index) {
+    const list = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const p = list[index];
+    if (!p) return;
+    document.getElementById('editPhongIndex').value = index;
+    document.getElementById('titleModalPhong').innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Phòng Học';
+    document.getElementById('phongMa').value = p.ma;
+    document.getElementById('phongTen').value = p.ten;
+    document.getElementById('phongSucChua').value = p.sucChua;
+    document.getElementById('phongIcon').value = p.icon || '🦁';
+    openModal('modalAddPhong');
+}
+
+async function savePhong(e) {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('editPhongIndex').value);
+    const ma = document.getElementById('phongMa').value;
+    const ten = document.getElementById('phongTen').value;
+    const sucChua = Number(document.getElementById('phongSucChua').value);
+    const icon = document.getElementById('phongIcon').value;
+
+    const list = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const data = { ma, ten, sucChua, icon };
+    if (idx >= 0) list[idx] = data;
+    else list.push(data);
+
+    await cloudSave('phongHocList', list);
+    showToast('Lưu thông tin phòng học thành công!');
+    closeModalSafe('modalAddPhong');
+    renderPhongGrid();
+    populateSelects();
+}
+
+async function deletePhong(index) {
+    if (confirm('Bạn có muốn xóa phòng học này?')) {
+        const list = JSON.parse(localStorage.getItem('phongHocList')) || [];
+        list.splice(index, 1);
+        await cloudSave('phongHocList', list);
+        showToast('Đã xóa phòng học!');
+        renderPhongGrid();
+        populateSelects();
+    }
+}
+
+function renderPhongGrid() {
+    const list = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    let html = '';
+    list.forEach((p, idx) => {
+        html += `<div class="col-md-4 mb-3">
+            <div class="p-3 border rounded-4 bg-light shadow-sm wiggle-item" onclick="editPhong(${idx})" style="width: 100%;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h5 class="fw-bold m-0 text-primary">${p.icon} ${p.ten}</h5>
+                    <span class="badge bg-dark">${p.ma}</span>
+                </div>
+                <p class="mb-1 text-muted small"><i class="fa-solid fa-users me-1"></i> Sức chứa: <strong>${p.sucChua} học sinh</strong></p>
+                <div class="text-end">
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2 fs-7" onclick="event.stopPropagation(); deletePhong(${idx})"><i class="fa-solid fa-trash"></i> Xóa</button>
+                </div>
+            </div>
+        </div>`;
+    });
+    document.getElementById('roomListGrid').innerHTML = html;
+}
+
+function toggleNgayNghiGV() {
+    const tt = document.getElementById('gvTinhTrang').value;
+    document.getElementById('boxNgayNghiGV').style.display = (tt === 'Nghỉ việc') ? 'block' : 'none';
+}
+
+function addTaiLieuGV() {
+    const ten = document.getElementById('tlTen').value;
+    const code = document.getElementById('tlCode').value;
+    const sl = Number(document.getElementById('tlSoLuong').value);
+    const ngayNhan = document.getElementById('tlNgayNhan').value;
+    const ngayTra = document.getElementById('tlNgayTra').value;
+
+    if (ten && code) {
+        currentTaiLieuGVList.push({ ten, code, sl, ngayNhan, ngayTra });
+        document.getElementById('tlTen').value = '';
+        document.getElementById('tlCode').value = '';
+        renderTaiLieuGVTags();
+    }
+}
+
+function removeTaiLieuGV(idx) {
+    currentTaiLieuGVList.splice(idx, 1);
+    renderTaiLieuGVTags();
+}
+
+function renderTaiLieuGVTags() {
+    let html = '';
+    currentTaiLieuGVList.forEach((t, idx) => {
+        html += `<span class="badge bg-warning text-dark me-2 mb-1 p-2">${t.ten} (${t.code}) - SL: ${t.sl} <i class="fa-solid fa-xmark text-danger ms-1 wiggle-item" onclick="removeTaiLieuGV(${idx})"></i></span>`;
+    });
+    document.getElementById('taiLieuGVTagContainer').innerHTML = html;
+}
+
+function openAddGVModal() {
+    document.getElementById('editGVIndex').value = '-1';
+    document.getElementById('titleModalGV').innerHTML = '<i class="fa-solid fa-user-plus me-2"></i>Thêm Giáo Viên Mới';
+    const list = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    document.getElementById('gvMa').value = 'GV' + String(list.length + 1).padStart(3, '0');
+    document.getElementById('gvTen').value = '';
+    document.getElementById('gvPhone').value = '';
+    document.getElementById('gvNgaySinh').value = '1995-01-01';
+    document.getElementById('gvNgayBD').value = formatDateISO(new Date());
+    document.getElementById('gvTinhTrang').value = 'Đang làm việc';
+    document.getElementById('gvMail').value = '';
+    document.getElementById('gvPass').value = '123456';
+    toggleNgayNghiGV();
+    currentTaiLieuGVList = [];
+    renderTaiLieuGVTags();
+    openModal('modalAddGV');
+}
+
+function editGV(index) {
+    const list = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const g = list[index];
+    if (!g) return;
+    document.getElementById('editGVIndex').value = index;
+    document.getElementById('titleModalGV').innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Giáo Viên';
+    document.getElementById('gvMa').value = g.ma;
+    document.getElementById('gvTen').value = g.ten;
+    document.getElementById('gvGioiTinh').value = g.gioiTinh || 'Nam';
+    document.getElementById('gvNgaySinh').value = g.ngaySinh || '1995-01-01';
+    document.getElementById('gvHocVan').value = g.hocVan || 'Đại học';
+    document.getElementById('gvPhone').value = g.phone || '';
+    document.getElementById('gvDcCu').value = g.dcCu || '';
+    document.getElementById('gvDcMoi').value = g.dcMoi || '';
+    document.getElementById('gvNgayBD').value = g.ngayBD || formatDateISO(new Date());
+    document.getElementById('gvTinhTrang').value = g.tinhTrang || 'Đang làm việc';
+    document.getElementById('gvNgayNghi').value = g.ngayNghi || '';
+    document.getElementById('gvLuong').value = g.luong || 150000;
+    document.getElementById('gvMail').value = g.mail || generateSmartEmail(g.ten);
+    document.getElementById('gvPass').value = g.pass || '123456';
+    toggleNgayNghiGV();
+    currentTaiLieuGVList = g.taiLieu || [];
+    renderTaiLieuGVTags();
+    openModal('modalAddGV');
+}
+
+async function deleteGV(index) {
+    if (confirm('Xác nhận xóa thông tin giáo viên này?')) {
+        const list = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+        list.splice(index, 1);
+        await cloudSave('giaoVienList', list);
+        showToast('Đã xóa giáo viên thành công!');
+        renderGVTable();
+        populateSelects();
+    }
+}
+
+async function saveGV(e) {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('editGVIndex').value);
+    const ma = document.getElementById('gvMa').value;
+    const ten = document.getElementById('gvTen').value;
+    const gioiTinh = document.getElementById('gvGioiTinh').value;
+    const ngaySinh = document.getElementById('gvNgaySinh').value;
+    const hocVan = document.getElementById('gvHocVan').value;
+    const phone = document.getElementById('gvPhone').value;
+    const dcCu = document.getElementById('gvDcCu').value;
+    const dcMoi = document.getElementById('gvDcMoi').value;
+    const ngayBD = document.getElementById('gvNgayBD').value;
+    const tinhTrang = document.getElementById('gvTinhTrang').value;
+    const ngayNghi = document.getElementById('gvNgayNghi').value;
+    const luong = Number(document.getElementById('gvLuong').value);
+    const mail = document.getElementById('gvMail').value;
+    const pass = document.getElementById('gvPass').value;
+
+    const list = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const data = { ma, ten, gioiTinh, ngaySinh, hocVan, phone, dcCu, dcMoi, ngayBD, tinhTrang, ngayNghi, luong, mail, pass, taiLieu: currentTaiLieuGVList };
+
+    if (idx >= 0) list[idx] = data;
+    else list.push(data);
+
+    await cloudSave('giaoVienList', list);
+    showToast('Lưu giáo viên thành công!');
+    closeModalSafe('modalAddGV');
+    renderGVTable();
+    populateSelects();
+}
+
+function renderGVTable() {
+    const list = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    let html = '';
+    list.forEach((g, idx) => {
+        let tlStr = (g.taiLieu || []).map(t => `${t.ten} (${t.code})`).join(', ');
+        let dcStr = (g.dcCu || 'Chưa cập nhật') + ' / ' + (g.dcMoi || 'Chưa cập nhật');
+        let phoneWorkStr = (g.phone || 'Chưa có') + ' / ' + (g.ngayBD || '---');
+        let mailStr = g.mail || generateSmartEmail(g.ten);
+        let passStr = g.pass || '123456';
+        
+        html += `<tr>
+            <td><span class="badge bg-warning text-dark fw-bold">${g.ma}</span></td>
+            <td><span class="fw-bold text-primary wiggle-item" onclick="editGV(${idx})">${g.ten}</span></td>
+            <td>${g.gioiTinh || 'Nam'} / ${g.ngaySinh || '---'}</td>
+            <td>${g.hocVan || 'Đại học'}</td>
+            <td><small>${dcStr}</small></td>
+            <td><small>${phoneWorkStr}</small></td>
+            <td><span class="badge ${g.tinhTrang === 'Đang làm việc' ? 'bg-success' : 'bg-danger'}">${g.tinhTrang || 'Đang làm việc'}</span></td>
+            <td><code>${mailStr}</code> / <code>${passStr}</code></td>
+            <td><small>${tlStr || 'Không'}</small></td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-danger px-2 py-1 fs-7" onclick="deleteGV(${idx})" title="Xóa giáo viên"><i class="fa-solid fa-trash"></i> Xóa</button>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('tableGVBody').innerHTML = html;
+}
+
+async function generateLopCode() {
+    const monInput = document.getElementById('lopMonInput').value.trim();
+    if (!monInput) return;
+
+    const monList = JSON.parse(localStorage.getItem('monHocList')) || [];
+    if (!monList.includes(monInput)) {
+        monList.push(monInput);
+        await cloudSave('monHocList', monList);
+        populateSelects();
+    }
+
+    const codePrefix = removeAccents(monInput).replace(/[^a-z0-9]/g, '').toUpperCase().slice(0, 3);
+    const list = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const count = list.filter(l => l.mon === monInput).length + 1;
+    document.getElementById('lopMa').value = codePrefix + String(count).padStart(3, '0');
+}
+
+function openAddLopModal() {
+    document.getElementById('editLopIndex').value = '-1';
+    document.getElementById('titleModalLop').innerHTML = '<i class="fa-solid fa-chalkboard-user me-2"></i>Thêm Lớp Học Mới';
+    document.getElementById('lopMonInput').value = 'Tiếng Anh';
+    generateLopCode();
+    document.getElementById('lopTen').value = '';
+    document.getElementById('lopHocPhi').value = 800000;
+    document.getElementById('lopNgayBD').value = formatDateISO(new Date());
+    document.getElementById('lopNgayKT').value = '';
+    openModal('modalAddLop');
+}
+
+function editLop(index) {
+    const list = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const l = list[index];
+    if (!l) return;
+    document.getElementById('editLopIndex').value = index;
+    document.getElementById('titleModalLop').innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Lớp Học';
+    document.getElementById('lopMa').value = l.ma;
+    document.getElementById('lopMonInput').value = l.mon || 'Tiếng Anh';
+    document.getElementById('lopTen').value = l.ten;
+    document.getElementById('lopHocPhi').value = l.hocPhi;
+    document.getElementById('lopSoBuoi').value = l.soBuoi;
+    document.getElementById('lopNgayBD').value = l.ngayBD || '';
+    document.getElementById('lopNgayKT').value = l.ngayKT || '';
+    document.getElementById('lopGVSelect').value = l.gvMa || '';
+    openModal('modalAddLop');
+}
+
+async function deleteLop(index) {
+    if (confirm('Xác nhận xóa lớp học này?')) {
+        const list = JSON.parse(localStorage.getItem('lopHocList')) || [];
+        list.splice(index, 1);
+        await cloudSave('lopHocList', list);
+        showToast('Đã xóa lớp học thành công!');
+        renderLopTable();
+        populateSelects();
+    }
+}
+
+async function saveLop(e) {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('editLopIndex').value);
+    const ma = document.getElementById('lopMa').value;
+    const mon = document.getElementById('lopMonInput').value;
+    const ten = document.getElementById('lopTen').value;
+    const hocPhi = Number(document.getElementById('lopHocPhi').value);
+    const soBuoi = Number(document.getElementById('lopSoBuoi').value);
+    const ngayBD = document.getElementById('lopNgayBD').value;
+    const ngayKT = document.getElementById('lopNgayKT').value;
+    const gvMa = document.getElementById('lopGVSelect').value;
+
+    let status = 'Hoạt động';
+    if (ngayKT && new Date(ngayKT) <= new Date()) {
+        status = 'Ngừng lớp';
+    }
+
+    const list = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const data = { ma, mon, ten, hocPhi, soBuoi, ngayBD, ngayKT, gvMa, status };
+
+    if (idx >= 0) list[idx] = data;
+    else list.push(data);
+
+    await cloudSave('lopHocList', list);
+    showToast('Lưu thông tin lớp học thành công!');
+    closeModalSafe('modalAddLop');
+    renderLopTable();
+    populateSelects();
+}
+
+function renderLopTable() {
+    const list = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    let html = '';
+    list.forEach((l, idx) => {
+        html += `<tr>
+            <td><span class="badge bg-primary fw-bold">${l.ma}</span></td>
+            <td><strong>${l.mon}</strong> / <span class="fw-bold text-primary wiggle-item" onclick="editLop(${idx})">${l.ten}</span></td>
+            <td class="text-success fw-bold">${Number(l.hocPhi).toLocaleString()} đ</td>
+            <td><span class="badge bg-secondary">${l.soBuoi} buổi/kỳ</span></td>
+            <td>${l.ngayBD || '---'}</td>
+            <td>${l.ngayKT || 'Đang mở'}</td>
+            <td><span class="badge ${l.status === 'Hoạt động' ? 'bg-success' : 'bg-danger'}">${l.status}</span></td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-danger px-2 py-1 fs-7" onclick="deleteLop(${idx})" title="Xóa lớp học"><i class="fa-solid fa-trash"></i> Xóa</button>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('tableLopBody').innerHTML = html;
+}
+
+function addQuaItem() {
+    const ten = document.getElementById('quaTen').value;
+    const sl = Number(document.getElementById('quaSL').value);
+    const ngay = document.getElementById('quaNgay').value;
+    if (ten) {
+        currentQuaHSList.push({ ten, sl, ngay });
+        document.getElementById('quaTen').value = '';
+        renderQuaTags();
+    }
+}
+
+function removeQuaItem(idx) {
+    currentQuaHSList.splice(idx, 1);
+    renderQuaTags();
+}
+
+function renderQuaTags() {
+    let html = '';
+    currentQuaHSList.forEach((q, idx) => {
+        html += `<span class="badge bg-info text-dark me-2 mb-1 p-2">${q.ten} (x${q.sl}) <i class="fa-solid fa-xmark text-danger ms-1 wiggle-item" onclick="removeQuaItem(${idx})"></i></span>`;
+    });
+    document.getElementById('quaTagContainer').innerHTML = html;
+}
+
+function openAddHSModal() {
+    document.getElementById('editHSIndex').value = '-1';
+    document.getElementById('titleModalHS').innerHTML = '<i class="fa-solid fa-graduation-cap me-2"></i>Thêm Học Sinh Mới';
+    const list = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    document.getElementById('hsMa').value = 'HS' + String(list.length + 1).padStart(3, '0');
+    document.getElementById('hsTen').value = '';
+    document.getElementById('hsNgaySinh').value = '2018-05-10';
+    document.getElementById('hsTruong').value = '';
+    document.getElementById('hsLopRieng').value = '';
+    document.getElementById('hsNgayNhapHoc').value = formatDateISO(new Date());
+    document.getElementById('hsTenPH').value = '';
+    document.getElementById('hsPhone').value = '';
+    document.getElementById('hsDiaChi').value = '';
+    document.getElementById('hsMail').value = '';
+    document.getElementById('hsPass').value = '123456';
+    currentQuaHSList = [];
+    renderQuaTags();
+    openModal('modalAddHS');
+}
+
+function editHS(index) {
+    const list = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const h = list[index];
+    if (!h) return;
+    document.getElementById('editHSIndex').value = index;
+    document.getElementById('titleModalHS').innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Học Sinh';
+    document.getElementById('hsMa').value = h.ma;
+    document.getElementById('hsTen').value = h.ten;
+    document.getElementById('hsGioiTinh').value = h.gioiTinh || 'Nam';
+    document.getElementById('hsNgaySinh').value = h.ngaySinh || '';
+    document.getElementById('hsTruong').value = h.truong || '';
+    document.getElementById('hsLopRieng').value = h.lopRieng || '';
+    document.getElementById('hsLopSelect').value = h.lopMa || '';
+    document.getElementById('hsNgayNhapHoc').value = h.ngayNhapHoc || '';
+    document.getElementById('hsTenPH').value = h.tenPH || '';
+    document.getElementById('hsPhone').value = h.phone || '';
+    document.getElementById('hsDiaChi').value = h.diaChi || '';
+    document.getElementById('hsMail').value = h.mail || generateSmartEmail(h.ten);
+    document.getElementById('hsPass').value = h.pass || '123456';
+    currentQuaHSList = h.quaList || [];
+    renderQuaTags();
+    openModal('modalAddHS');
+}
+
+async function deleteHS(index) {
+    if (confirm('Xác nhận xóa học sinh này?')) {
+        const list = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+        list.splice(index, 1);
+        await cloudSave('hocSinhList', list);
+        showToast('Đã xóa học sinh thành công!');
+        renderHSTable();
+    }
+}
+
+async function saveHS(e) {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('editHSIndex').value);
+    const ma = document.getElementById('hsMa').value;
+    const ten = document.getElementById('hsTen').value;
+    const gioiTinh = document.getElementById('hsGioiTinh').value;
+    const ngaySinh = document.getElementById('hsNgaySinh').value;
+    const truong = document.getElementById('hsTruong').value;
+    const lopRieng = document.getElementById('hsLopRieng').value;
+    const lopMa = document.getElementById('hsLopSelect').value;
+    const ngayNhapHoc = document.getElementById('hsNgayNhapHoc').value;
+    const tenPH = document.getElementById('hsTenPH').value;
+    const phone = document.getElementById('hsPhone').value;
+    const diaChi = document.getElementById('hsDiaChi').value;
+    const mail = document.getElementById('hsMail').value;
+    const pass = document.getElementById('hsPass').value;
+
+    const list = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const data = { ma, ten, gioiTinh, ngaySinh, truong, lopRieng, lopMa, ngayNhapHoc, tenPH, phone, diaChi, quaList: currentQuaHSList, mail, pass };
+
+    if (idx >= 0) list[idx] = data;
+    else list.push(data);
+
+    await cloudSave('hocSinhList', list);
+    showToast('Lưu học sinh thành công!');
+    closeModalSafe('modalAddHS');
+    renderHSTable();
+}
+
+function renderHSTable() {
+    const list = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    let html = '';
+    list.forEach((h, idx) => {
+        const lop = lopList.find(l => l.ma === h.lopMa) || { ten: 'Chưa xếp' };
+        let quaStr = (h.quaList || []).map(q => q.ten).join(', ');
+        let phStr = (h.tenPH || '---') + ' / ' + (h.phone || '---') + ' / ' + (h.diaChi || '---');
+        let mailStr = h.mail || generateSmartEmail(h.ten);
+        let passStr = h.pass || '123456';
+
+        html += `<tr>
+            <td><span class="badge bg-success fw-bold">${h.ma}</span></td>
+            <td><span class="fw-bold text-primary wiggle-item" onclick="editHS(${idx})">${h.ten}</span></td>
+            <td>${h.ngaySinh || '---'} / ${h.gioiTinh || 'Nam'}</td>
+            <td>${h.truong || '---'} (${h.lopRieng || '---'})</td>
+            <td><span class="badge bg-info text-dark">${lop.ten}</span></td>
+            <td>${h.ngayNhapHoc || '---'}</td>
+            <td><small>${phStr}</small></td>
+            <td><small>${quaStr || 'Không'}</small></td>
+            <td><code>${mailStr}</code> / <code>${passStr}</code></td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-danger px-2 py-1 fs-7" onclick="deleteHS(${idx})" title="Xóa học sinh"><i class="fa-solid fa-trash"></i> Xóa</button>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('tableHSBody').innerHTML = html;
+}
+
+async function saveBank(e) {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('editBankIndex').value);
+    const code = document.getElementById('bankCode').value.trim();
+    const accNo = document.getElementById('bankAccNo').value.trim();
+    const accName = document.getElementById('bankAccName').value.trim().toUpperCase();
+
+    const list = JSON.parse(localStorage.getItem('bankAccounts')) || [];
+    const data = { code, accNo, accName };
+    if (idx >= 0) list[idx] = data;
+    else list.push(data);
+
+    await cloudSave('bankAccounts', list);
+    showToast('Lưu tài khoản ngân hàng thành công!');
+    closeModalSafe('modalAddBank');
+    renderBankTable();
+}
+
+async function deleteBank(index) {
+    if (confirm('Xóa tài khoản ngân hàng này?')) {
+        const list = JSON.parse(localStorage.getItem('bankAccounts')) || [];
+        list.splice(index, 1);
+        await cloudSave('bankAccounts', list);
+        showToast('Đã xóa tài khoản!');
+        renderBankTable();
+    }
+}
+
+function renderBankTable() {
+    const list = JSON.parse(localStorage.getItem('bankAccounts')) || [];
+    let html = '';
+    list.forEach((b, idx) => {
+        html += `<tr>
+            <td><span class="badge bg-success fs-6">${b.code}</span></td>
+            <td class="fw-bold">${b.accNo}</td>
+            <td><span class="fw-bold text-primary wiggle-item" onclick="editBank(${idx})">${b.accName}</span></td>
+            <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteBank(${idx})"><i class="fa-solid fa-trash"></i> Xóa</button></td>
+        </tr>`;
+    });
+    document.getElementById('tableBankBody').innerHTML = html;
+}
+
+function editBank(idx) {
+    const list = JSON.parse(localStorage.getItem('bankAccounts')) || [];
+    const b = list[idx];
+    if (!b) return;
+    document.getElementById('editBankIndex').value = idx;
+    document.getElementById('bankCode').value = b.code;
+    document.getElementById('bankAccNo').value = b.accNo;
+    document.getElementById('bankAccName').value = b.accName;
+    openModal('modalAddBank');
+}
+
+function onUserSelectChange() {
+    const val = document.getElementById('mkUserSelect').value;
+    if (val === 'ADMIN') {
+        document.getElementById('mkOldPass').value = '123456 (Admin Pass)';
+    } else {
+        const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+        const gv = gvList.find(g => g.ma === val);
+        if (gv) document.getElementById('mkOldPass').value = gv.pass || '123456';
+    }
+}
+
+async function confirmDoiMK(e) {
+    e.preventDefault();
+    const val = document.getElementById('mkUserSelect').value;
+    const newPass = document.getElementById('mkNewPass').value;
+    const confirmPass = document.getElementById('mkConfirmPass').value;
+
+    if (newPass !== confirmPass) {
+        alert('Mật khẩu xác nhận không khớp!');
+        return;
+    }
+
+    if (val === 'ADMIN') {
+        showToast('Đã đổi mật khẩu Admin!');
+    } else {
+        const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+        const gv = gvList.find(g => g.ma === val);
+        if (gv) {
+            gv.pass = newPass;
+            await cloudSave('giaoVienList', gvList);
+            showToast(`Đã đổi mật khẩu cho ${gv.ten}!`);
+        }
+    }
+    closeModalSafe('modalDoiMK');
+    document.getElementById('formDoiMK').reset();
+}
+
+/* ================= 2. THỜI KHÓA BIỂU & ĐIỂM DANH ================= */
+
+function initDateTimeSelects() {
+    const yearSelect = document.getElementById('tkbYear');
+    const monthSelect = document.getElementById('tkbMonth');
+    if (!yearSelect || !monthSelect) return;
+
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth() + 1;
+
+    yearSelect.innerHTML = '';
+    for (let y = curYear - 1; y <= curYear + 2; y++) {
+        yearSelect.innerHTML += `<option value="${y}" ${y === curYear ? 'selected' : ''}>Năm ${y}</option>`;
+    }
+
+    monthSelect.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+        monthSelect.innerHTML += `<option value="${m}" ${m === curMonth ? 'selected' : ''}>Tháng ${m}</option>`;
+    }
+
+    updateWeekOptions();
+}
+
+function updateWeekOptions() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const weekSelect = document.getElementById('tkbWeek');
+    if (!weekSelect) return;
+
+    weekSelect.innerHTML = '';
+    for (let w = 1; w <= 5; w++) {
+        const dates = getWeekDates(year, month, w);
+        if (w === 5 && dates[0].getMonth() + 1 !== month) break;
+
+        const startStr = `${dates[0].getDate().toString().padStart(2, '0')}/${(dates[0].getMonth() + 1).toString().padStart(2, '0')}`;
+        const endStr = `${dates[6].getDate().toString().padStart(2, '0')}/${(dates[6].getMonth() + 1).toString().padStart(2, '0')}`;
+        weekSelect.innerHTML += `<option value="${w}">Tuần ${w} (${startStr} - ${endStr})</option>`;
+    }
+    weekSelect.value = 1;
+}
+
+function onYearMonthChange() {
+    updateWeekOptions();
+    renderTKB();
+}
+
+function changeWeek(offset) {
+    const weekSelect = document.getElementById('tkbWeek');
+    let curWeek = parseInt(weekSelect.value) + offset;
+    if (curWeek >= 1 && curWeek <= weekSelect.options.length) {
+        weekSelect.value = curWeek;
+        renderTKB();
+    }
+}
+
+function setCurrentWeek() {
+    initDateTimeSelects();
+    renderTKB();
+}
+
+function renderTKB() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const weekIndex = parseInt(document.getElementById('tkbWeek').value);
+    const filterPhong = document.getElementById('selectPhongTKB').value;
+    const filterGV = document.getElementById('selectGVTKB').value;
+
+    const dates = getWeekDates(year, month, weekIndex);
+    const startDateStr = `${dates[0].getDate()}/${dates[0].getMonth() + 1}/${dates[0].getFullYear()}`;
+    const endDateStr = `${dates[6].getDate()}/${dates[6].getMonth() + 1}/${dates[6].getFullYear()}`;
+    document.getElementById('weekRangeLabel').textContent = `Tuần ${weekIndex}: Từ ${startDateStr} đến ${endDateStr}`;
+
+    const headerRow = document.getElementById('tkbHeaderRow');
+    let headerHtml = '<th style="width: 130px;">Ca / Thời Gian</th>';
+    const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
+    for (let i = 0; i < 7; i++) {
+        const dStr = `${dates[i].getDate().toString().padStart(2, '0')}/${(dates[i].getMonth() + 1).toString().padStart(2, '0')}`;
+        headerHtml += `<th>${dayNames[i]}<br><small>(${dStr})</small></th>`;
+    }
+    headerRow.innerHTML = headerHtml;
+
+    const shiftTimes = [
+        { id: 'C1', name: 'Sáng Ca 1', time: '08:00 - 09:30' },
+        { id: 'C2', name: 'Sáng Ca 2', time: '09:30 - 11:00' },
+        { id: 'C3', name: 'Chiều Ca 1', time: '14:00 - 15:30' },
+        { id: 'C4', name: 'Chiều Ca 2', time: '15:30 - 17:00' },
+        { id: 'C5', name: 'Tối Ca 1', time: '17:30 - 19:00' },
+        { id: 'C6', name: 'Tối Ca 2', time: '19:00 - 20:30' }
+    ];
+
+    const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const phongList = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+
+    let todayShiftCount = 0;
+    const todayISO = formatDateISO(new Date());
+
+    let gridHtml = '';
+    shiftTimes.forEach(shift => {
+        gridHtml += `<tr>`;
+        gridHtml += `<td class="time-col"><strong>${shift.name}</strong><br><small>${shift.time}</small></td>`;
+
+        for (let i = 0; i < 7; i++) {
+            const dateStr = formatDateISO(dates[i]);
+            let cellItems = '';
+
+            tkbList.forEach((t) => {
+                if (t.ngay === dateStr && t.ca === shift.id) {
+                    if (dateStr === todayISO) todayShiftCount++;
+                    if (filterPhong !== 'ALL' && t.phongMa !== filterPhong) return;
+                    if (filterGV !== 'ALL' && t.gvMa !== filterGV) return;
+
+                    const phong = phongList.find(p => p.ma === t.phongMa) || { ten: 'Phòng', icon: '🏫' };
+                    const lop = lopList.find(l => l.ma === t.lopMa) || { ten: 'Lớp' };
+                    const gv = gvList.find(g => g.ma === t.gvMa) || { ten: 'GV' };
+
+                    const classHS = hsList.filter(h => h.lopMa === t.lopMa && h.ngayNhapHoc <= t.ngay);
+                    let checkedCount = 0;
+                    classHS.forEach(h => {
+                        if (diemDanhList.includes(`${t.id}_${h.ma}`)) checkedCount++;
+                    });
+
+                    let statusDDStr = checkedCount > 0 ? `Đã điểm danh ${checkedCount}/${classHS.length}` : `Chưa điểm danh (0/${classHS.length})`;
+
+                    cellItems += `<div class="tkb-card" style="background:#e3f2fd;" onclick="openEditLichModal('${t.id}')">
+                        <span class="room-badge">${phong.icon} ${phong.ten}</span>
+                        <div class="class-name text-primary">${lop.ten}</div>
+                        <div class="teacher-name"><i class="fa-solid fa-chalkboard-user me-1"></i>${gv.ten}</div>
+                        <div class="mt-1"><span class="badge ${checkedCount > 0 ? 'bg-success' : 'bg-warning text-dark'} small">${statusDDStr}</span></div>
+                        <div class="mt-2 text-end">
+                            <button class="btn btn-sm btn-outline-success py-0 px-2 fs-7" onclick="event.stopPropagation(); openDiemDanhModal('${t.id}')"><i class="fa-solid fa-clipboard-user me-1"></i>Điểm danh</button>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            gridHtml += `<td>
+                ${cellItems}
+                <button class="tkb-cell-add-btn" onclick="openAddLichModalForCell('${dateStr}', '${shift.id}')"><i class="fa-solid fa-plus me-1"></i>Xếp lịch</button>
+            </td>`;
+        }
+        gridHtml += `</tr>`;
+    });
+
+    document.getElementById('tkbGridBody').innerHTML = gridHtml;
+    document.getElementById('dailyShiftCountBadge').innerHTML = `<i class="fa-solid fa-school-flag me-1"></i> Số ca học ngày hôm nay: ${todayShiftCount}`;
+}
+
+function openAddLichModal() {
+    document.getElementById('editLichId').value = '';
+    document.getElementById('btnDeleteSingleLich').style.display = 'none';
+    const dates = getWeekDates(parseInt(document.getElementById('tkbYear').value), parseInt(document.getElementById('tkbMonth').value), parseInt(document.getElementById('tkbWeek').value));
+    document.getElementById('lichNgaySpecific').value = formatDateISO(dates[0]);
+    openModal('modalAddLichSingle');
+}
+
+function openAddLichModalForCell(dateStr, caId) {
+    document.getElementById('editLichId').value = '';
+    document.getElementById('btnDeleteSingleLich').style.display = 'none';
+    document.getElementById('lichNgaySpecific').value = dateStr;
+    document.getElementById('lichCaSelect').value = caId;
+    openModal('modalAddLichSingle');
+}
+
+function onLichLopChange() {
+    const lopMa = document.getElementById('lichLopSelect').value;
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const lop = lopList.find(l => l.ma === lopMa);
+    if (lop && lop.gvMa) document.getElementById('lichGVSelect').value = lop.gvMa;
+}
+
+async function saveLichSingle(e) {
+    e.preventDefault();
+    const editId = document.getElementById('editLichId').value;
+    const phongMa = document.getElementById('lichPhongSelect').value;
+    const lopMa = document.getElementById('lichLopSelect').value;
+    const gvMa = document.getElementById('lichGVSelect').value;
+    const ngay = document.getElementById('lichNgaySpecific').value;
+    const ca = document.getElementById('lichCaSelect').value;
+
+    const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+
+    const dupGV = tkbList.find(t => t.id !== editId && t.ngay === ngay && t.ca === ca && t.gvMa === gvMa);
+    if (dupGV) {
+        alert('Giáo viên này đã có ca dạy trong cùng khung giờ!');
+        return;
+    }
+
+    if (editId) {
+        const item = tkbList.find(t => t.id === editId);
+        if (item) {
+            item.phongMa = phongMa; item.lopMa = lopMa; item.gvMa = gvMa; item.ngay = ngay; item.ca = ca;
+        }
+    } else {
+        tkbList.push({ id: 'LICH' + Date.now(), phongMa, lopMa, gvMa, ngay, ca });
+    }
+
+    await cloudSave('tkbList', tkbList);
+    showToast('Lưu lịch học thành công!');
+    closeModalSafe('modalAddLichSingle');
+    renderTKB();
+}
+
+function openEditLichModal(lichId) {
+    const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const item = tkbList.find(t => t.id === lichId);
+    if (!item) return;
+
+    document.getElementById('editLichId').value = item.id;
+    document.getElementById('lichPhongSelect').value = item.phongMa;
+    document.getElementById('lichLopSelect').value = item.lopMa;
+    document.getElementById('lichGVSelect').value = item.gvMa;
+    document.getElementById('lichNgaySpecific').value = item.ngay;
+    document.getElementById('lichCaSelect').value = item.ca;
+    document.getElementById('btnDeleteSingleLich').style.display = 'block';
+    openModal('modalAddLichSingle');
+}
+
+async function deleteSingleLich() {
+    const editId = document.getElementById('editLichId').value;
+    if (confirm('Xóa ca học này?')) {
+        let tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+        tkbList = tkbList.filter(t => t.id !== editId);
+        await cloudSave('tkbList', tkbList);
+        showToast('Đã xóa ca học!');
+        closeModalSafe('modalAddLichSingle');
+        renderTKB();
+    }
+}
+
+// HÀM CHÉP LỊCH TỪ TUẦN TRƯỚC SANG
+async function copyScheduleFromPrevWeek() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const curWeek = parseInt(document.getElementById('tkbWeek').value);
+
+    if (curWeek <= 1) {
+        alert('Đây là tuần đầu tiên của tháng, không có tuần trước để chép lịch!');
+        return;
+    }
+
+    const prevWeekDates = getWeekDates(year, month, curWeek - 1);
+    const curWeekDates = getWeekDates(year, month, curWeek);
+
+    let tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    let addedCount = 0;
+
+    for (let i = 0; i < 7; i++) {
+        const prevDateStr = formatDateISO(prevWeekDates[i]);
+        const curDateStr = formatDateISO(curWeekDates[i]);
+
+        const prevSchedules = tkbList.filter(t => t.ngay === prevDateStr);
+        prevSchedules.forEach(item => {
+            const exists = tkbList.some(t => t.ngay === curDateStr && t.ca === item.ca && t.phongMa === item.phongMa);
+            if (!exists) {
+                tkbList.push({
+                    id: 'LICH' + Date.now() + Math.random().toString(36).substr(2, 4),
+                    phongMa: item.phongMa,
+                    lopMa: item.lopMa,
+                    gvMa: item.gvMa,
+                    ngay: curDateStr,
+                    ca: item.ca
+                });
+                addedCount++;
+            }
+        });
+    }
+
+    await cloudSave('tkbList', tkbList);
+    renderTKB();
+    showToast(`Đã chép thành công ${addedCount} ca học từ tuần trước sang!`);
+}
+
+// HÀM CHÉP LỊCH TỪ TUẦN SAU SANG
+async function copyScheduleFromNextWeek() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const curWeek = parseInt(document.getElementById('tkbWeek').value);
+
+    const nextWeekDates = getWeekDates(year, month, curWeek + 1);
+    const curWeekDates = getWeekDates(year, month, curWeek);
+
+    let tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    let addedCount = 0;
+
+    for (let i = 0; i < 7; i++) {
+        const nextDateStr = formatDateISO(nextWeekDates[i]);
+        const curDateStr = formatDateISO(curWeekDates[i]);
+
+        const nextSchedules = tkbList.filter(t => t.ngay === nextDateStr);
+        nextSchedules.forEach(item => {
+            const exists = tkbList.some(t => t.ngay === curDateStr && t.ca === item.ca && t.phongMa === item.phongMa);
+            if (!exists) {
+                tkbList.push({
+                    id: 'LICH' + Date.now() + Math.random().toString(36).substr(2, 4),
+                    phongMa: item.phongMa,
+                    lopMa: item.lopMa,
+                    gvMa: item.gvMa,
+                    ngay: curDateStr,
+                    ca: item.ca
+                });
+                addedCount++;
+            }
+        });
+    }
+
+    await cloudSave('tkbList', tkbList);
+    renderTKB();
+    showToast(`Đã chép thành công ${addedCount} ca học từ tuần sau sang!`);
+}
+
+// HÀM XÓA LỊCH TOÀN BỘ TUẦN NÀY
+async function deleteCurrentWeekSchedule() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const curWeek = parseInt(document.getElementById('tkbWeek').value);
+    const weekDates = getWeekDates(year, month, curWeek);
+
+    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch dạy của tuần này không?')) {
+        let tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+        const dateStrs = weekDates.map(d => formatDateISO(d));
+
+        tkbList = tkbList.filter(t => !dateStrs.includes(t.ngay));
+        await cloudSave('tkbList', tkbList);
+        
+        renderTKB();
+        showToast('Đã xóa toàn bộ lịch của tuần này!');
+    }
+}
+
+// Điểm danh
+function openDiemDanhModal(lichId) {
+    const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const item = tkbList.find(t => t.id === lichId);
+    if (!item) return;
+
+    currentDiemDanhItem = item;
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const lop = lopList.find(l => l.ma === item.lopMa) || { ten: 'Lớp' };
+    document.getElementById('ddInfoClass').textContent = `Lớp: ${lop.ten} (${item.lopMa})`;
+    document.getElementById('ddInfoTime').textContent = `Ngày: ${item.ngay} | Ca: ${item.ca}`;
+
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const filteredHS = hsList.filter(h => h.lopMa === item.lopMa && h.ngayNhapHoc <= item.ngay);
+
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+    let html = '';
+    filteredHS.forEach(h => {
+        const ddKey = `${item.id}_${h.ma}`;
+        const isChecked = diemDanhList.includes(ddKey) ? 'checked' : '';
+        html += `<tr>
+            <td><span class="badge bg-info text-dark">${h.ma}</span></td>
+            <td class="fw-bold text-primary">${h.ten}</td>
+            <td><input class="form-check-input fs-5 dd-checkbox" type="checkbox" value="${h.ma}" ${isChecked}></td>
+        </tr>`;
+    });
+
+    if (!html) html = `<tr><td colspan="3" class="text-muted">Không có học sinh nào hợp lệ điểm danh vào ngày này.</td></tr>`;
+    document.getElementById('ddHocSinhListBody').innerHTML = html;
+    openModal('modalDiemDanh');
+}
+
+async function saveDiemDanh() {
+    if (!currentDiemDanhItem) return;
+    const checkboxes = document.querySelectorAll('.dd-checkbox');
+    let diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+
+    checkboxes.forEach(cb => {
+        const ddKey = `${currentDiemDanhItem.id}_${cb.value}`;
+        const index = diemDanhList.indexOf(ddKey);
+        if (cb.checked && index === -1) diemDanhList.push(ddKey);
+        else if (!cb.checked && index !== -1) diemDanhList.splice(index, 1);
+    });
+
+    await cloudSave('diemDanhList', diemDanhList);
+    showToast('Lưu điểm danh thành công!');
+    closeModalSafe('modalDiemDanh');
+    renderTKB();
+    renderBaoCaoHocPhiLop();
+    renderBaoCaoLuongGV();
+}
+
+/* ================= 3. BÁO CÁO VÀ LỢI NHUẬN ================= */
+
+function renderBaoCaoLuongGV() {
+    const gvMa = document.getElementById('bcSelectGV').value;
+    const fromDate = document.getElementById('reportLockFrom').value;
+    const toDate = document.getElementById('reportLockTo').value;
+
+    const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const gv = gvList.find(g => g.ma === gvMa) || { luong: 150000 };
+    const mucLuongCa = Number(gv.luong || 150000);
+
+    const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const phongList = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+
+    let caDuocGiao = 0;
+    let caDaDiemDanh = 0;
+    let chiTietHtml = '';
+
+    tkbList.forEach(t => {
+        if (t.gvMa === gvMa) {
+            if (fromDate && t.ngay < fromDate) return;
+            if (toDate && t.ngay > toDate) return;
+
+            caDuocGiao++;
+            const classHS = hsList.filter(h => h.lopMa === t.lopMa);
+            let hasDD = false;
+            classHS.forEach(h => {
+                if (diemDanhList.includes(`${t.id}_${h.ma}`)) hasDD = true;
+            });
+
+            if (hasDD) caDaDiemDanh++;
+
+            const phong = phongList.find(p => p.ma === t.phongMa) || { ten: 'Phòng' };
+            const lop = lopList.find(l => l.ma === t.lopMa) || { ten: 'Lớp' };
+
+            chiTietHtml += `<tr>
+                <td><code>${t.ngay} / ${t.ca}</code></td>
+                <td>${phong.ten}</td>
+                <td>${lop.ten}</td>
+                <td><span class="badge ${hasDD ? 'bg-success' : 'bg-warning text-dark'}">${hasDD ? 'Đã điểm danh' : 'Chưa điểm danh'}</span></td>
+                <td class="text-danger fw-bold">${(hasDD ? mucLuongCa : 0).toLocaleString()} đ</td>
+            </tr>`;
+        }
+    });
+
+    document.getElementById('bcChiTietCaBody').innerHTML = chiTietHtml || `<tr><td colspan="5" class="text-muted">Chưa có ca dạy nào trong khoảng thời gian này.</td></tr>`;
+
+    const tongLuongCa = caDaDiemDanh * mucLuongCa;
+    const phuCap = Number(document.getElementById('bcPhuCap').value) || 0;
+    const khauTru = Number(document.getElementById('bcKhauTru').value) || 0;
+    const thucNhan = tongLuongCa + phuCap - khauTru;
+
+    document.getElementById('bcCaDuocGiao').textContent = caDuocGiao;
+    document.getElementById('bcCaDaDiemDanh').textContent = caDaDiemDanh;
+    document.getElementById('bcTongLuongCa').textContent = `${tongLuongCa.toLocaleString()} VNĐ`;
+    document.getElementById('bcThucNhanGV').textContent = `${thucNhan.toLocaleString()} VNĐ`;
+}
+
+async function saveLuongChoGiaoVien() {
+    const gvMa = document.getElementById('bcSelectGV').value;
+    if (!gvMa) return;
+    const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const gv = gvList.find(g => g.ma === gvMa);
+
+    const caCount = document.getElementById('bcCaDaDiemDanh').textContent;
+    const phuCap = Number(document.getElementById('bcPhuCap').value) || 0;
+    const khauTru = Number(document.getElementById('bcKhauTru').value) || 0;
+    const thucNhan = document.getElementById('bcThucNhanGV').textContent;
+
+    const savedList = JSON.parse(localStorage.getItem('savedSalaryList')) || [];
+    savedList.push({ gvMa, ten: gv.ten, caCount, phuCap, khauTru, thucNhan });
+    await cloudSave('savedSalaryList', savedList);
+
+    showToast('Đã lưu lương cho giáo viên!');
+    renderSavedSalaryTable();
+}
+
+function renderSavedSalaryTable() {
+    const savedList = JSON.parse(localStorage.getItem('savedSalaryList')) || [];
+    let html = '';
+    savedList.forEach((s, idx) => {
+        html += `<tr>
+            <td><span class="badge bg-warning text-dark">${s.gvMa}</span></td>
+            <td><span class="fw-bold text-primary wiggle-item" onclick="deleteSavedSalary(${idx})">${s.ten}</span></td>
+            <td>${s.caCount} ca</td>
+            <td>${s.phuCap.toLocaleString()} đ</td>
+            <td>${s.khauTru.toLocaleString()} đ</td>
+            <td class="text-success fw-bold">${s.thucNhan}</td>
+            <td><button class="btn btn-sm btn-outline-danger" onclick="deleteSavedSalary(${idx})"><i class="fa-solid fa-trash"></i> Xóa</button></td>
+        </tr>`;
+    });
+    document.getElementById('tableSavedSalaryBody').innerHTML = html;
+}
+
+async function deleteSavedSalary(idx) {
+    const savedList = JSON.parse(localStorage.getItem('savedSalaryList')) || [];
+    savedList.splice(idx, 1);
+    await cloudSave('savedSalaryList', savedList);
+    renderSavedSalaryTable();
+}
+
+function renderBaoCaoHocPhiLop() {
+    const lopMa = document.getElementById('bcSelectLop').value;
+    const fromDate = document.getElementById('reportLockFrom').value;
+    const toDate = document.getElementById('reportLockTo').value;
+
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+    const thuTienList = JSON.parse(localStorage.getItem('thuTienGiaoDichList')) || [];
+
+    const lop = lopList.find(l => l.ma === lopMa) || { hocPhi: 400000, soBuoi: 12 };
+
+    const filteredHS = hsList.filter(h => !lopMa || h.lopMa === lopMa);
+    let html = '';
+
+    filteredHS.forEach((h, stt) => {
+        let checkedBuoi = 0;
+        tkbList.forEach(t => {
+            if (t.lopMa === h.lopMa && diemDanhList.includes(`${t.id}_${h.ma}`)) {
+                if (fromDate && t.ngay < fromDate) return;
+                if (toDate && t.ngay > toDate) return;
+                checkedBuoi++;
+            }
+        });
+
+        let daNopTruoc = 0;
+        let phaiThuTruoc = 0;
+        thuTienList.forEach(t => {
+            if (t.hsMa === h.ma) {
+                if (fromDate && t.ngayThu < fromDate) daNopTruoc += Number(t.soTien);
+            }
+        });
+
+        if (fromDate && fromDate > '2026-07-31') phaiThuTruoc = Number(lop.hocPhi);
+
+        let chuyenTuThangTruoc = daNopTruoc - phaiThuTruoc;
+        if (chuyenTuThangTruoc < 0) chuyenTuThangTruoc = 0;
+
+        let daNopKyNay = 0;
+        thuTienList.forEach(t => {
+            if (t.hsMa === h.ma) {
+                if (fromDate && t.ngayThu < fromDate) return;
+                if (toDate && t.ngayThu > toDate) return;
+                daNopKyNay += Number(t.soTien);
+            }
+        });
+
+        const phaiThuKyNay = Number(lop.hocPhi);
+        const tongSoTienHienCo = daNopKyNay + chuyenTuThangTruoc;
+        const conLai = phaiThuKyNay - tongSoTienHienCo;
+
+        let trangThaiStr = '';
+        if (conLai < 0) {
+            const duVal = Math.abs(conLai);
+            trangThaiStr = `<span class="badge bg-success">Đã đóng ${phaiThuKyNay.toLocaleString()}đ (Ghi chú: Dư ${duVal.toLocaleString()}đ chuyển tháng sau)</span>`;
+        } else if (conLai === 0) {
+            trangThaiStr = `<span class="badge bg-success">Đã hoàn thành</span>`;
+        } else {
+            if (chuyenTuThangTruoc > 0) {
+                trangThaiStr = `<span class="badge bg-warning text-dark">Đã nhận ${chuyenTuThangTruoc.toLocaleString()}đ chuyển tháng trước qua (Còn thiếu ${conLai.toLocaleString()}đ)</span>`;
+            } else {
+                trangThaiStr = `<span class="badge bg-danger">Còn thiếu ${conLai.toLocaleString()}đ</span>`;
+            }
+        }
+
+        const maPhieuThu = 'PT-' + h.ma;
+        const qrURL = `https://img.vietqr.io/image/MBBank-0905123456-compact2.png?amount=${conLai > 0 ? conLai : 0}&addInfo=${encodeURIComponent(h.ten + ' ' + maPhieuThu)}`;
+
+        html += `<tr>
+            <td>${stt + 1}</td>
+            <td><span class="badge bg-secondary">${maPhieuThu}</span></td>
+            <td><span class="badge bg-info text-dark">${h.ma}</span></td>
+            <td class="fw-bold text-primary">${h.ten}</td>
+            <td>${lop.soBuoi} buổi</td>
+            <td><span class="badge bg-success">${checkedBuoi} buổi</span></td>
+            <td>${Number(lop.hocPhi).toLocaleString()} đ</td>
+            <td>0 đ</td>
+            <td class="fw-bold">${phaiThuKyNay.toLocaleString()} đ</td>
+            <td><span class="fw-bold text-success wiggle-item" onclick="openFormThuTiens('${h.ma}')">${tongSoTienHienCo.toLocaleString()} đ</span></td>
+            <td class="fw-bold text-danger">${(conLai > 0 ? conLai : 0).toLocaleString()} đ</td>
+            <td>${trangThaiStr}</td>
+            <td><a href="${qrURL}" target="_blank" class="btn btn-sm btn-outline-orange"><i class="fa-solid fa-qrcode"></i> Mã QR</a></td>
+        </tr>`;
+    });
+
+    document.getElementById('tableHocPhiLopBody').innerHTML = html || `<tr><td colspan="13" class="text-muted">Không có dữ liệu.</td></tr>`;
+    renderClassSummary();
+}
+
+function openFormThuTiens(hsMa) {
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const hs = hsList.find(h => h.ma === hsMa);
+    if (!hs) return;
+
+    document.getElementById('nopTienHsMa').value = hs.ma;
+    document.getElementById('nopTienMaPhieu').value = 'PT' + Date.now().toString().slice(-6);
+    document.getElementById('nopTienTenHs').value = `${hs.ten} (${hs.ma})`;
+    document.getElementById('nopTienNgay').value = formatDateISO(new Date());
+    document.getElementById('nopTienSoTien').value = 400000;
+    document.getElementById('nopTienNoiDung').value = `${hs.ten} nộp học phí`;
+
+    renderHsHistoryThu(hs.ma);
+    openModal('modalNopTien');
+}
+
+async function saveNopTienGiaoDich(e) {
+    e.preventDefault();
+    const hsMa = document.getElementById('nopTienHsMa').value;
+    const maPhieu = document.getElementById('nopTienMaPhieu').value;
+    const soTien = Number(document.getElementById('nopTienSoTien').value);
+    const ngayThu = document.getElementById('nopTienNgay').value;
+    const nguoiThu = document.getElementById('nopTienNguoiThu').value;
+    const noiDung = document.getElementById('nopTienNoiDung').value;
+
+    const thuTienList = JSON.parse(localStorage.getItem('thuTienGiaoDichList')) || [];
+    thuTienList.push({ id: maPhieu, hsMa, soTien, ngayThu, nguoiThu, noiDung });
+    await cloudSave('thuTienGiaoDichList', thuTienList);
+
+    showToast('Xác nhận thu tiền thành công!');
+    closeModalSafe('modalNopTien');
+    renderBaoCaoHocPhiLop();
+    renderBaoCaoLoiNhuan();
+}
+
+function renderHsHistoryThu(hsMa) {
+    const thuTienList = JSON.parse(localStorage.getItem('thuTienGiaoDichList')) || [];
+    const list = thuTienList.filter(t => t.hsMa === hsMa);
+    let html = '';
+    list.forEach((t) => {
+        html += `<tr>
+            <td>${t.id}</td>
+            <td>${t.ngayThu}</td>
+            <td class="text-success fw-bold">${Number(t.soTien).toLocaleString()} đ</td>
+            <td><button class="btn btn-sm btn-outline-danger" onclick="deleteHistoryThu('${t.id}')">Xóa</button></td>
+        </tr>`;
+    });
+    document.getElementById('hsHistoryThuBody').innerHTML = html || `<tr><td colspan="4" class="text-muted">Chưa có giao dịch nào.</td></tr>`;
+}
+
+async function deleteHistoryThu(id) {
+    let thuTienList = JSON.parse(localStorage.getItem('thuTienGiaoDichList')) || [];
+    thuTienList = thuTienList.filter(t => t.id !== id);
+    await cloudSave('thuTienGiaoDichList', thuTienList);
+    showToast('Đã xóa giao dịch!');
+    renderBaoCaoHocPhiLop();
+    renderBaoCaoLoiNhuan();
+}
+
+function renderClassSummary() {
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const thuTienList = JSON.parse(localStorage.getItem('thuTienGiaoDichList')) || [];
+
+    let html = '';
+    lopList.forEach(l => {
+        const classHS = hsList.filter(h => h.lopMa === l.ma);
+        const tongCanThu = classHS.length * Number(l.hocPhi);
+
+        let tongDaThu = 0;
+        classHS.forEach(h => {
+            thuTienList.forEach(t => { if (t.hsMa === h.ma) tongDaThu += Number(t.soTien); });
+        });
+
+        const conLai = tongCanThu - tongDaThu;
+
+        html += `<tr>
+            <td><strong class="text-primary wiggle-item" onclick="viewClassPaidDetail('${l.ma}')">${l.ma} - ${l.ten}</strong></td>
+            <td>${tongCanThu.toLocaleString()} đ</td>
+            <td class="text-danger fw-bold">${(conLai > 0 ? conLai : 0).toLocaleString()} đ</td>
+            <td class="text-success fw-bold">${tongDaThu.toLocaleString()} đ</td>
+        </tr>`;
+    });
+    document.getElementById('tableClassSummaryBody').innerHTML = html;
+}
+
+function viewClassPaidDetail(lopMa) {
+    document.getElementById('bcSelectLop').value = lopMa;
+    renderBaoCaoHocPhiLop();
+}
+
+async function saveThuChi(e) {
+    e.preventDefault();
+    const loai = document.getElementById('tcLoai').value;
+    const muc = document.getElementById('tcMuc').value;
+    const soTien = Number(document.getElementById('tcSoTien').value);
+    const ngay = document.getElementById('tcNgay').value;
+    const ghiChu = document.getElementById('tcGhiChu').value;
+
+    const list = JSON.parse(localStorage.getItem('thuChiList')) || [];
+    list.push({ loai, muc, soTien, ngay, ghiChu });
+    await cloudSave('thuChiList', list);
+
+    showToast('Lưu khoản thu/chi thành công!');
+    closeModalSafe('modalAddThuChi');
+    renderThuChiTable();
+    renderBaoCaoLoiNhuan();
+}
+
+async function deleteThuChi(index) {
+    if (confirm('Xóa khoản này?')) {
+        const list = JSON.parse(localStorage.getItem('thuChiList')) || [];
+        list.splice(index, 1);
+        await cloudSave('thuChiList', list);
+        showToast('Đã xóa!');
+        renderThuChiTable();
+        renderBaoCaoLoiNhuan();
+    }
+}
+
+function renderThuChiTable() {
+    const list = JSON.parse(localStorage.getItem('thuChiList')) || [];
+    const fromDate = document.getElementById('reportLockFrom').value;
+    const toDate = document.getElementById('reportLockTo').value;
+
+    let html = '';
+    list.forEach((item, idx) => {
+        if (fromDate && item.ngay < fromDate) return;
+        if (toDate && item.ngay > toDate) return;
+
+        html += `<tr>
+            <td>${item.ngay}</td>
+            <td><span class="badge ${item.loai === 'THU' ? 'bg-success' : 'bg-danger'}">${item.loai}</span></td>
+            <td class="fw-bold">${item.muc}</td>
+            <td class="${item.loai === 'THU' ? 'text-success' : 'text-danger'} fw-bold">${Number(item.soTien).toLocaleString()} đ</td>
+            <td>${item.ghiChu || ''}</td>
+            <td><button class="btn btn-sm btn-outline-danger" onclick="deleteThuChi(${idx})"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>`;
+    });
+    document.getElementById('tableThuChiBody').innerHTML = html || `<tr><td colspan="6" class="text-muted">Chưa có dữ liệu trong khoảng thời gian này.</td></tr>`;
+}
+
+function renderBaoCaoLoiNhuan() {
+    const fromDate = document.getElementById('reportLockFrom').value;
+    const toDate = document.getElementById('reportLockTo').value;
+
+    const thuTienList = JSON.parse(localStorage.getItem('thuTienGiaoDichList')) || [];
+    let tongDaThu = 0;
+    thuTienList.forEach(t => { 
+        if (fromDate && t.ngayThu < fromDate) return;
+        if (toDate && t.ngayThu > toDate) return;
+        tongDaThu += Number(t.soTien); 
+    });
+
+    const thuChiList = JSON.parse(localStorage.getItem('thuChiList')) || [];
+    let tongThuKhac = 0;
+    let tongChiKhac = 0;
+    thuChiList.forEach(item => {
+        if (fromDate && item.ngay < fromDate) return;
+        if (toDate && item.ngay > toDate) return;
+
+        if (item.loai === 'THU') tongThuKhac += Number(item.soTien);
+        else tongChiKhac += Number(item.soTien);
+    });
+
+    const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+
+    let tongChiLuongGV = 0;
+    gvList.forEach(gv => {
+        const mucLuongCa = Number(gv.luong || 150000);
+        let caCount = 0;
+        tkbList.forEach(t => {
+            if (t.gvMa === gv.ma) {
+                if (fromDate && t.ngay < fromDate) return;
+                if (toDate && t.ngay > toDate) return;
+
+                const classHS = hsList.filter(h => h.lopMa === t.lopMa);
+                let hasDD = false;
+                classHS.forEach(h => { if (diemDanhList.includes(`${t.id}_${h.ma}`)) hasDD = true; });
+                if (hasDD) caCount++;
+            }
+        });
+        tongChiLuongGV += caCount * mucLuongCa;
+    });
+
+    const loiNhuanRong = (tongDaThu + tongThuKhac) - (tongChiLuongGV + tongChiKhac);
+
+    document.getElementById('lnDaThu').textContent = `${tongDaThu.toLocaleString()} đ`;
+    document.getElementById('lnThuKhac').textContent = `${tongThuKhac.toLocaleString()} đ`;
+    document.getElementById('lnChiLuong').textContent = `${tongChiLuongGV.toLocaleString()} đ`;
+    document.getElementById('lnChiKhac').textContent = `${tongChiKhac.toLocaleString()} đ`;
+    document.getElementById('lnLoiNhuanRong').textContent = `${loiNhuanRong.toLocaleString()} VNĐ`;
+}
+
+function previewPDFGV() {
+    const gvMa = document.getElementById('bcSelectGV').value;
+    if (!gvMa) {
+        alert('Vui lòng chọn 1 giáo viên để xuất báo cáo PDF!');
+        return;
+    }
+
+    const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const gv = gvList.find(g => g.ma === gvMa) || { ten: 'Chưa chọn', luong: 150000 };
+
+    const fromDate = document.getElementById('reportLockFrom').value || '---';
+    const toDate = document.getElementById('reportLockTo').value || '---';
+
+    const caDuocGiao = document.getElementById('bcCaDuocGiao').textContent;
+    const caDaDiemDanh = document.getElementById('bcCaDaDiemDanh').textContent;
+    const tongLuongCa = document.getElementById('bcTongLuongCa').textContent;
+    const phuCap = Number(document.getElementById('bcPhuCap').value) || 0;
+    const khauTru = Number(document.getElementById('bcKhauTru').value) || 0;
+    const thucNhan = document.getElementById('bcThucNhanGV').textContent;
+
+    const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const phongList = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+
+    const caByClassMap = {};
+    tkbList.forEach(t => {
+        if (t.gvMa === gvMa) {
+            if (fromDate !== '---' && t.ngay < fromDate) return;
+            if (toDate !== '---' && t.ngay > toDate) return;
+
+            const classHS = hsList.filter(h => h.lopMa === t.lopMa);
+            let hasDD = false;
+            classHS.forEach(h => { if (diemDanhList.includes(`${t.id}_${h.ma}`)) hasDD = true; });
+
+            if (!caByClassMap[t.lopMa]) caByClassMap[t.lopMa] = [];
+            caByClassMap[t.lopMa].push({
+                ngay: t.ngay,
+                ca: t.ca,
+                phongMa: t.phongMa,
+                hasDD: hasDD
+            });
+        }
+    });
+
+    let classTablesHtml = '';
+    const classKeys = Object.keys(caByClassMap);
+
+    if (classKeys.length === 0) {
+        classTablesHtml = `<p style="text-align:center; color:#777; font-size:8pt;">Chưa có dữ liệu ca dạy nào trong kỳ khóa này.</p>`;
+    } else {
+        classKeys.forEach(lopMa => {
+            const lop = lopList.find(l => l.ma === lopMa) || { ten: 'Lớp Học' };
+            const items = caByClassMap[lopMa];
+
+            let rows = '';
+            items.forEach((it, idx) => {
+                const phong = phongList.find(p => p.ma === it.phongMa) || { ten: 'Phòng' };
+                const luongCa = it.hasDD ? Number(gv.luong || 150000) : 0;
+
+                rows += `<tr>
+                    <td style="border: 1px solid #ccc; padding: 3px; text-align: center;">${idx + 1}</td>
+                    <td style="border: 1px solid #ccc; padding: 3px; text-align: center;">${it.ngay}</td>
+                    <td style="border: 1px solid #ccc; padding: 3px; text-align: center;">${it.ca}</td>
+                    <td style="border: 1px solid #ccc; padding: 3px; text-align: center;">${phong.ten}</td>
+                    <td style="border: 1px solid #ccc; padding: 3px; text-align: center;">${it.hasDD ? '<b style="color:green;">Đã điểm danh</b>' : '<b style="color:#d9534f;">Chưa điểm danh</b>'}</td>
+                    <td style="border: 1px solid #ccc; padding: 3px; text-align: center;"><b>${luongCa.toLocaleString()} đ</b></td>
+                </tr>`;
+            });
+
+            classTablesHtml += `
+                <div style="margin-top: 6px;">
+                    <div style="color: #ff5e00; font-weight: bold; font-size: 8pt; margin-bottom: 2px;">
+                        📌 BẢNG CA DẠY LỚP: ${lop.ten} (${lopMa})
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 8pt;">
+                        <thead>
+                            <tr style="background-color: #fff0e6; color: #d64045;">
+                                <th style="border: 1px solid #ccc; padding: 4px; width: 30px;">STT</th>
+                                <th style="border: 1px solid #ccc; padding: 4px;">Ngày Dạy</th>
+                                <th style="border: 1px solid #ccc; padding: 4px;">Ca Học</th>
+                                <th style="border: 1px solid #ccc; padding: 4px;">Phòng Học</th>
+                                <th style="border: 1px solid #ccc; padding: 4px;">Điểm Danh</th>
+                                <th style="border: 1px solid #ccc; padding: 4px;">Lương Ca</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        });
+    }
+
+    const pdfContent = `
+        <div style="width: 190mm; padding: 10mm; font-family: 'Be Vietnam Pro', sans-serif; font-size: 8pt; line-height: 1.2; color: #222; background: white; box-sizing: border-box;">
+            <div style="text-align: center; border-bottom: 2px solid #ff5e00; padding-bottom: 4px; margin-bottom: 8px;">
+                <h2 style="color: #ff5e00; font-weight: 800; margin: 0; font-size: 13pt; text-transform: uppercase;">TRUNG TÂM NGOẠI NGỮ THẦN ĐỒNG</h2>
+                <h3 style="margin: 2px 0; font-size: 10pt; color: #333;">BÁO CÁO THỜI GIAN DẠY & BẢNG LƯƠNG GIÁO VIÊN</h3>
+                <small style="font-size: 7.5pt; color: #555;">Kỳ báo cáo: Từ <b>${fromDate}</b> đến <b>${toDate}</b></small>
+            </div>
+
+            <div style="border: 1px solid #ff5e00; border-radius: 5px; padding: 5px 8px; margin-bottom: 6px; background: #fffaf8;">
+                <div style="font-weight: bold; color: #ff5e00; font-size: 8pt; margin-bottom: 3px;">I. THÔNG TIN CÁ NHÂN GIÁO VIÊN</div>
+                <table style="width: 100%; font-size: 7.5pt; border: none; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 1px 0; width: 35%;"><b>Họ và Tên:</b> ${gv.ten}</td>
+                        <td style="padding: 1px 0; width: 30%;"><b>Mã GV:</b> ${gv.ma}</td>
+                        <td style="padding: 1px 0; width: 35%;"><b>Giới tính:</b> ${gv.gioiTinh || 'Nam'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0;"><b>Ngày sinh:</b> ${gv.ngaySinh || '---'}</td>
+                        <td style="padding: 1px 0;"><b>Trình độ:</b> ${gv.hocVan || 'Đại học'}</td>
+                        <td style="padding: 1px 0;"><b>Điện thoại:</b> ${gv.phone || '---'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0;" colspan="2"><b>Địa chỉ:</b> ${gv.dcMoi || gv.dcCu || 'Chưa cập nhật'}</td>
+                        <td style="padding: 1px 0;"><b>Ngày vào làm:</b> ${gv.ngayBD || '---'}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="border: 1px solid #28a745; border-radius: 5px; padding: 5px 8px; margin-bottom: 6px; background: #f8fff9;">
+                <div style="font-weight: bold; color: #28a745; font-size: 8pt; margin-bottom: 3px;">II. TỔNG HỢP LƯƠNG KỲ NÀY</div>
+                <table style="width: 100%; font-size: 7.5pt; border: none; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 1px 0; width: 35%;"><b>Mức lương dạy:</b> ${Number(gv.luong || 150000).toLocaleString()} VNĐ/Ca</td>
+                        <td style="padding: 1px 0; width: 30%;"><b>Số ca được giao:</b> ${caDuocGiao} ca</td>
+                        <td style="padding: 1px 0; width: 35%;"><b>Ca đã điểm danh:</b> <b style="color: blue;">${caDaDiemDanh} ca</b></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0;"><b>Tổng lương ca dạy:</b> ${tongLuongCa}</td>
+                        <td style="padding: 1px 0;"><b>Phụ cấp (+):</b> ${phuCap.toLocaleString()} VNĐ</td>
+                        <td style="padding: 1px 0;"><b>Khấu trừ (-):</b> ${khauTru.toLocaleString()} VNĐ</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 0 0 0;" colspan="3"><b>👉 THỰC NHẬN TỔNG LƯƠNG:</b> <b style="color: red; font-size: 10pt;">${thucNhan}</b></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="font-weight: bold; font-size: 8pt; text-transform: uppercase; margin-top: 4px; color: #333;">
+                III. CHI TIẾT CÁC CA DẠY CỤ THỂ THEO TỪNG LỚP HỌC
+            </div>
+            ${classTablesHtml}
+
+            <div style="margin-top: 15px; width: 100%;">
+                <table style="width: 100%; font-size: 8pt; text-align: center; border: none; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 50%; vertical-align: top;">
+                            <b>GIÁO VIÊN KÝ TÊN</b><br>
+                            <i style="font-size: 7pt; color: #666;">(Ký và ghi rõ họ tên)</i><br><br><br><br>
+                            <b>${gv.ten}</b>
+                        </td>
+                        <td style="width: 50%; vertical-align: top;">
+                            <b>ĐẠI DIỆN TRUNG TÂM</b><br>
+                            <i style="font-size: 7pt; color: #666;">(Ký, đóng dấu)</i><br><br><br><br>
+                            <b>QUẢN TRỊ VIÊN</b>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('pdfTargetContent').innerHTML = pdfContent;
+    openModal('modalPreviewPDF');
+}
+
+function downloadPDFFromPreview() {
+    const element = document.getElementById('pdfTargetContent');
+    const opt = {
+        margin:       [5, 5, 5, 5],
+        filename:     'BaoCao_Luong_GiaoVien.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+/* ================= INIT ON LOAD ================= */
+document.addEventListener('DOMContentLoaded', async () => {
+    await initData();
+    initDateTimeSelects();
+    populateSelects();
+
+    renderPhongGrid();
+    renderGVTable();
+    renderLopTable();
+    renderHSTable();
+    renderBankTable();
+
+    renderTKB();
+    renderLockPeriods();
+
+    const lockList = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
+    if (lockList.length > 0) {
+        selectLockPeriod(lockList[0].id);
+    } else {
+        renderBaoCaoLuongGV();
+        renderSavedSalaryTable();
+        renderBaoCaoHocPhiLop();
+        renderThuChiTable();
+        renderBaoCaoLoiNhuan();
+    }
+});
+</script>
+</body>
+</html>

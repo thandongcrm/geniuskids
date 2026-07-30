@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Thông Tin Giáo Viên - GENIUS KIDS L.C</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUBJuv76X2GbhEGgGUat2O_g9rX5Bb0nA",
+    authDomain: "crm-tt-genius-kids.firebaseapp.com",
+    projectId: "crm-tt-genius-kids",
+    storageBucket: "crm-tt-genius-kids.firebasestorage.app",
+    messagingSenderId: "42080302170",
+    appId: "1:42080302170:web:df2e514cde42d500c85463"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  
+  // Gắn ra window để các hàm bên dưới gọi được
+  window.db = db;
+  console.log("Firebase đã sẵn sàng kết nối!");
+</script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 & FontAwesome 6 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- html2pdf Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary-orange: #ff5e00;
+            --bright-orange: #ff7b00;
+            --gradient-orange: linear-gradient(135deg, #ff5e00 0%, #ff8c00 50%, #ff0055 100%);
+            --accent-green: #00e676;
+            --dark-orange: #d64045;
+            --font-main: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            --card-radius: 20px;
+        }
+
+        * { font-family: var(--font-main); box-sizing: border-box; }
+        body { background: #f4f6f9; min-height: 100vh; color: #2b2d42; overflow-x: hidden; }
+
+        .admin-header {
+            background: var(--gradient-orange);
+            color: white;
+            padding: 24px 20px 18px 20px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 30px rgba(255, 94, 0, 0.35);
+            position: relative;
+            z-index: 100;
+        }
+
+        .main-title { font-size: 1.8rem; font-weight: 800; text-transform: uppercase; text-align: center; margin-bottom: 6px; }
+
+        .nav-tabs-custom { border: none; gap: 12px; margin-top: 18px; justify-content: center; }
+        .nav-tabs-custom .nav-link {
+            border: none; background: rgba(255, 255, 255, 0.25); color: white;
+            font-weight: 700; padding: 12px 26px; border-radius: 16px; transition: all 0.3s;
+        }
+        .nav-tabs-custom .nav-link.active { background: white; color: var(--primary-orange); box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+
+        .main-container { padding: 25px 20px; max-width: 1600px; margin: auto; }
+        .custom-card {
+            background: white; border-radius: var(--card-radius); padding: 24px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 2px solid #ffe8dc; margin-bottom: 25px;
+        }
+        .card-header-title {
+            color: var(--primary-orange); font-weight: 800; font-size: 1.25rem;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+            padding-bottom: 10px; border-bottom: 2px dashed #ffd5c0;
+        }
+
+        .btn-orange {
+            background: linear-gradient(45deg, #ff5e00, #ff8c00); color: white; font-weight: 700;
+            border-radius: 12px; border: none; padding: 10px 18px; transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 94, 0, 0.3);
+        }
+        .btn-orange:hover { background: linear-gradient(45deg, #ff7b00, #ff0055); color: white; transform: translateY(-2px); }
+        .btn-green { background: linear-gradient(45deg, #00c853, #00e676); color: white; font-weight: 700; border-radius: 12px; border: none; padding: 10px 18px; }
+        
+        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #ffe8dc; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; color: #ff5e00; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .table-responsive-custom { width: 100%; overflow-x: auto; border-radius: 14px; border: 1px solid #ffe2d4; }
+        
+        /* TKB BẢNG CỘT TƯƠNG TỰ ADMIN */
+        .tkb-table { width: 100%; border-collapse: separate; border-spacing: 6px; min-width: 1000px; }
+        .tkb-table th { background: #ff7b00; color: white; text-align: center; padding: 12px; border-radius: 12px; font-weight: 800; }
+        .tkb-table td { background: #fff8f5; border: 2px solid #ffe2d4; border-radius: 14px; vertical-align: top; padding: 8px; min-height: 110px; position: relative; }
+        .time-col { background: #ffe3d1 !important; color: #d64045; font-weight: 800; text-align: center; width: 130px; vertical-align: middle !important; }
+
+        .tkb-card { 
+            position: relative; padding: 8px 10px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); 
+            margin-bottom: 6px; color: #1a1a1a; background: #e3f2fd; border-left: 6px solid #ff5e00; transition: transform 0.2s;
+        }
+        .tkb-card .room-badge { position: absolute; top: 4px; right: 6px; font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.85); }
+        .tkb-card .class-name { font-weight: 800; font-size: 0.85rem; margin-top: 2px; }
+
+        /* MẪU IN PDF CHUẨN A4 */
+        #pdfRenderContainer { background: #525659; padding: 15px; max-height: 75vh; overflow-y: auto; }
+        #pdfTargetContent { width: 190mm; margin: 0 auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.3); padding: 10mm; font-family: 'Be Vietnam Pro', sans-serif; }
+
+        .modal-content { border-radius: 22px; border: 3px solid #ff7b00; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .modal-header { background: var(--gradient-orange); color: white; padding: 18px 24px; border: none; }
+    </style>
+</head>
+<body>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+  <div id="toastNotification" class="toast align-items-center text-white bg-success border-0 shadow" role="alert">
+    <div class="d-flex">
+      <div class="toast-body fw-bold fs-6" id="toastMessage"><i class="fa-solid fa-circle-check me-2"></i>Thao tác thành công!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="admin-header">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <span class="badge bg-light text-primary fw-bold fs-6 px-3 py-2 rounded-pill shadow-sm">
+                <i class="fa-solid fa-chalkboard-user me-1"></i> PORTAL GIÁO VIÊN
+            </span>
+        </div>
+        <div class="text-end">
+            <span class="fw-bold me-2" id="headerUserName"><i class="fa-solid fa-circle-user me-1"></i> Đang tải...</span>
+            <button class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="showLogoutModal()">
+                <i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất
+            </button>
+        </div>
+    </div>
+    <div class="main-title">CRM GIÁO VIÊN TRUNG TÂM</div>
+
+    <!-- TABS ĐIỀU HƯỚNG -->
+    <ul class="nav nav-tabs nav-tabs-custom" id="mainTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#hoso-sec" type="button"><i class="fa-solid fa-id-badge me-2"></i>HỒ SƠ CỦA TÔI</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lop-sec" type="button"><i class="fa-solid fa-users me-2"></i>LỚP & HỌC SINH</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lich-sec" type="button"><i class="fa-solid fa-calendar-days me-2"></i>THỜI KHÓA BIỂU DẠY</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#luong-sec" type="button"><i class="fa-solid fa-file-invoice-dollar me-2"></i>BÁO CÁO LƯƠNG</button>
+        </li>
+    </ul>
+</header>
+
+<main class="main-container">
+    <div class="tab-content">
+        
+        <!-- ================= TAB 1: HỒ SƠ & ĐỔI MẬT KHẨU ================= -->
+        <div class="tab-pane fade show active" id="hoso-sec">
+            <div class="custom-card">
+                <div class="card-header-title d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-address-card fa-lg"></i> THÔNG TIN CÁ NHÂN & TÀI KHOẢN</span>
+                    <button class="btn btn-orange btn-sm fw-bold" onclick="openModal('modalDoiMKGV')">
+                        <i class="fa-solid fa-key me-1"></i> Đổi Mật Khẩu
+                    </button>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="profile-avatar mx-auto mb-3"><i class="fa-solid fa-user-tie"></i></div>
+                        <h4 class="fw-bold text-primary mb-1" id="profileName">---</h4>
+                        <span class="badge bg-warning text-dark fs-6" id="profileCode">---</span>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row g-3">
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-venus-mars me-2 text-orange"></i>Giới tính:</strong> <span id="profileGender">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-cake-candles me-2 text-orange"></i>Ngày sinh:</strong> <span id="profileDob">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-phone me-2 text-orange"></i>Điện thoại:</strong> <span id="profilePhone">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-graduation-cap me-2 text-orange"></i>Trình độ:</strong> <span id="profileLevel">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-calendar-check me-2 text-orange"></i>Ngày làm việc:</strong> <span id="profileWorkDate">---</span></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-money-bill-wave me-2 text-orange"></i>Mức lương/ca:</strong> <span id="profileSalary" class="text-danger fw-bold">---</span></div></div>
+                            <div class="col-12"><div class="p-3 bg-light rounded border"><strong><i class="fa-solid fa-location-dot me-2 text-orange"></i>Địa chỉ:</strong> <span id="profileAddress">---</span></div></div>
+                            
+                            <!-- BỔ SUNG KHUNG TÀI KHOẢN HỆ THỐNG -->
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border border-primary"><strong><i class="fa-solid fa-envelope me-2 text-primary"></i>Tài khoản Email:</strong> <code class="fs-6" id="profileEmail">---</code></div></div>
+                            <div class="col-md-6"><div class="p-3 bg-light rounded border border-primary"><strong><i class="fa-solid fa-lock me-2 text-primary"></i>Mật khẩu hiện tại:</strong> <code class="fs-6" id="profilePass">******</code></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h6 class="fw-bold text-orange"><i class="fa-solid fa-folder-open me-1"></i> Tài liệu/Thiết bị trung tâm đã cấp:</h6>
+                    <div id="profileMaterials" class="d-flex flex-wrap gap-2 mt-2">Đang tải...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: LỚP & HỌC SINH ================= -->
+        <div class="tab-pane fade" id="lop-sec">
+            <div class="custom-card">
+                <div class="card-header-title"><i class="fa-solid fa-users-rectangle fa-lg"></i> DANH SÁCH LỚP HỌC PHỤ TRÁCH</div>
+                <div id="classListContainer" class="accordion mt-3"></div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: THỜI KHÓA BIỂU DẠY (DẠNG BẢNG CỘT ADMIN) ================= -->
+        <div class="tab-pane fade" id="lich-sec">
+            <div class="custom-card">
+                <div class="row g-3 align-items-end mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-calendar me-1 text-orange"></i> Năm:</label>
+                        <select class="form-select shadow-sm" id="tkbYear" onchange="onYearMonthChange()"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-calendar-month me-1 text-orange"></i> Tháng:</label>
+                        <select class="form-select shadow-sm" id="tkbMonth" onchange="onYearMonthChange()"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-calendar-week me-1 text-orange"></i> Chọn Tuần:</label>
+                        <select class="form-select border-primary shadow-sm" id="tkbWeek" onchange="renderTKBGrid()"></select>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 p-3 bg-light rounded-4 border">
+                    <div class="btn-group shadow-sm">
+                        <button class="btn btn-outline-orange" onclick="changeWeek(-1)"><i class="fa-solid fa-chevron-left me-1"></i> Tuần trước</button>
+                        <button class="btn btn-orange" onclick="setCurrentWeek()"><i class="fa-solid fa-clock me-1"></i> Tuần này</button>
+                        <button class="btn btn-outline-orange" onclick="changeWeek(1)">Tuần sau <i class="fa-solid fa-chevron-right ms-1"></i></button>
+                    </div>
+                    <div class="text-center">
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm" id="weekRangeLabel">Đang tải lịch...</span>
+                    </div>
+                </div>
+
+                <!-- BẢNG TKB CỘT 7 NGÀY -->
+                <div class="table-responsive">
+                    <table class="tkb-table">
+                        <thead>
+                            <tr id="tkbHeaderRow">
+                                <th style="width: 130px;">Ca / Thời Gian</th>
+                                <th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>Chủ Nhật</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tkbGridBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 4: BÁO CÁO LƯƠNG & XUẤT PDF ================= -->
+        <div class="tab-pane fade" id="luong-sec">
+            <div class="custom-card mb-4">
+                <div class="card-header-title"><i class="fa-solid fa-file-invoice-dollar fa-lg"></i> BÁO CÁO LƯƠNG CÁ NHÂN & XUẤT PDF</div>
+                
+                <div class="row g-3 mb-4 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Chọn kỳ báo cáo (Do Admin chốt):</label>
+                        <select class="form-select border-orange fw-bold shadow-sm" id="salaryPeriodSelect" onchange="renderSalaryReport()"></select>
+                    </div>
+                </div>
+
+                <!-- KHUNG THỐNG KÊ LƯƠNG CÓ PHỤ CẤP / KHẤU TRỪ -->
+                <div class="row g-3 mb-4 text-center">
+                    <div class="col-md-2">
+                        <div class="p-3 bg-white border border-primary rounded-4 shadow-sm">
+                            <h6 class="text-muted fw-bold mb-1 small">Ca giao</h6>
+                            <h3 class="text-primary fw-extrabold mb-0" id="salTotalAssigned">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="p-3 bg-white border border-success rounded-4 shadow-sm">
+                            <h6 class="text-muted fw-bold mb-1 small">Ca dạy</h6>
+                            <h3 class="text-success fw-extrabold mb-0" id="salTotalAttended">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white border rounded-4 shadow-sm">
+                            <h6 class="text-muted fw-bold mb-1 small">Tổng Lương Ca Dạy</h6>
+                            <h4 class="text-dark fw-bold mb-0" id="salTotalMoney">0 đ</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="p-3 bg-white border rounded-4 shadow-sm">
+                            <h6 class="text-muted fw-bold mb-1 small">Phụ Cấp / Khấu Trừ</h6>
+                            <div class="small text-success fw-bold" id="salPhuCap">+0 đ</div>
+                            <div class="small text-danger fw-bold" id="salKhauTru">-0 đ</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white border border-danger rounded-4 shadow-sm">
+                            <h6 class="text-muted fw-bold mb-1 small">THỰC NHẬN TỔNG LƯƠNG</h6>
+                            <h3 class="text-danger fw-extrabold mb-0" id="salThucNhan">0 VNĐ</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-orange mb-2">Chi tiết các ca đã dạy trong kỳ:</h6>
+                <div class="table-responsive-custom mb-4">
+                    <table class="table table-bordered table-sm text-center align-middle mb-0">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Ngày / Ca</th>
+                                <th>Phòng học</th>
+                                <th>Lớp học</th>
+                                <th>Trạng thái điểm danh</th>
+                                <th>Lương tính</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salDetailBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-center border-top pt-4">
+                    <button class="btn btn-orange px-4 py-2 fs-5 fw-bold" onclick="previewPDF()">
+                        <i class="fa-solid fa-file-pdf me-2"></i> Xem & Tải PDF Báo Cáo Lương Chuẩn
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- MODAL: Đổi Mật Khẩu Giáo Viên -->
+<div class="modal fade" id="modalDoiMKGV" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-key me-2"></i>Đổi Mật Khẩu Tài Khoản</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formDoiMKGV" onsubmit="saveNewPassGV(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mật khẩu hiện tại</label>
+                        <input type="text" class="form-control bg-light" id="gvOldPass" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mật khẩu mới</label>
+                        <input type="password" class="form-control" id="gvNewPass" required minlength="6" placeholder="Nhập mật khẩu mới...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="form-control" id="gvConfirmPass" required minlength="6" placeholder="Nhập lại mật khẩu mới...">
+                    </div>
+                    <button type="submit" class="btn btn-green w-100 fw-bold">Lưu & Đồng Bộ Hệ Thống</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Điểm Danh Học Sinh -->
+<div class="modal fade" id="modalDiemDanh" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-clipboard-user me-2"></i>Điểm Danh Lớp Học</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="ddInfoClass" class="fw-bold text-orange mb-1">Lớp: ---</h6>
+                <p class="small text-muted mb-3" id="ddInfoTime">Thời gian: ---</p>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle text-center">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Mã HS</th>
+                                <th>Tên Học Sinh</th>
+                                <th>Có Mặt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ddHocSinhListBody"></tbody>
+                    </table>
+                </div>
+                <button class="btn btn-green w-100 mt-2 fw-bold" onclick="saveDiemDanh()"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Lưu & Đồng Bộ Hệ Thống</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Xem Trước & Xuất PDF -->
+<div class="modal fade" id="modalPreviewPDF" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-success">
+                <h5 class="modal-title"><i class="fa-solid fa-file-pdf me-2"></i>Báo Cáo Lương Giáo Viên (Mẫu A4)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="pdfRenderContainer">
+                    <div id="pdfTargetContent"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-orange fw-bold" onclick="downloadPDF()"><i class="fa-solid fa-download me-1"></i> Tải File PDF Về Máy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Đăng xuất -->
+<div class="modal fade" id="modalLogout" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <div class="modal-body">
+                <i class="fa-solid fa-right-from-bracket fa-4x text-danger mb-3"></i>
+                <h4 class="fw-bold text-dark mb-2">XÁC NHẬN ĐĂNG XUẤT?</h4>
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button class="btn btn-secondary px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-orange px-4 rounded-pill fw-bold" onclick="executeLogout()">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ================= HỆ THỐNG DỮ LIỆU & BẢO MẬT ================= */
+let myInfo = null;
+let currentDiemDanhItem = null;
+
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if (!currentUser || currentUser.role !== 'giaovien') {
+    alert('Bạn không có quyền truy cập. Vui lòng đăng nhập bằng tài khoản Giáo Viên!');
+    window.location.href = 'index.html';
+}
+
+function showToast(msg) {
+    document.getElementById('toastMessage').innerHTML = `<i class="fa-solid fa-circle-check me-2"></i>${msg}`;
+    new bootstrap.Toast(document.getElementById('toastNotification')).show();
+}
+function openModal(id) { new bootstrap.Modal(document.getElementById(id)).show(); }
+function closeModal(id) { bootstrap.Modal.getInstance(document.getElementById(id)).hide(); }
+function showLogoutModal() { openModal('modalLogout'); }
+function executeLogout() { 
+    localStorage.removeItem('currentUser');
+    window.location.href = 'index.html'; 
+}
+
+function getFirstMondayOfMonth(year, month) {
+    const firstDay = new Date(year, month - 1, 1);
+    const dayOfWeek = firstDay.getDay(); 
+    const diffToMonday = (dayOfWeek === 0) ? 1 : (dayOfWeek === 1 ? 0 : 8 - dayOfWeek);
+    return new Date(year, month - 1, 1 + diffToMonday);
+}
+
+function getWeekDates(year, month, weekIndex) {
+    const firstMonday = getFirstMondayOfMonth(year, month);
+    const startOfWeek = new Date(firstMonday);
+    startOfWeek.setDate(firstMonday.getDate() + (weekIndex - 1) * 7);
+
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
+        weekDates.push(d);
+    }
+    return weekDates;
+}
+
+function formatDateISO(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+/* ================= KHỞI TẠO DỮ LIỆU CÁ NHÂN ================= */
+function initMyData() {
+    const allGV = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    myInfo = allGV.find(g => g.ma === currentUser.code || g.mail === currentUser.email);
+    
+    if(!myInfo) {
+        alert('Không tìm thấy hồ sơ cá nhân. Vui lòng liên hệ Admin!');
+        executeLogout();
+        return;
+    }
+
+    document.getElementById('headerUserName').innerHTML = `<i class="fa-solid fa-chalkboard-user me-1"></i> Cô/Thầy ${myInfo.ten}`;
+
+    document.getElementById('profileName').textContent = myInfo.ten;
+    document.getElementById('profileCode').textContent = myInfo.ma;
+    document.getElementById('profileGender').textContent = myInfo.gioiTinh || 'Nam';
+    document.getElementById('profileDob').textContent = myInfo.ngaySinh || '---';
+    document.getElementById('profilePhone').textContent = myInfo.phone || '---';
+    document.getElementById('profileLevel').textContent = myInfo.hocVan || 'Đại học';
+    document.getElementById('profileWorkDate').textContent = myInfo.ngayBD || '---';
+    document.getElementById('profileSalary').textContent = `${Number(myInfo.luong || 150000).toLocaleString()} VNĐ`;
+    document.getElementById('profileAddress').textContent = myInfo.dcMoi || myInfo.dcCu || '---';
+    
+    document.getElementById('profileEmail').textContent = myInfo.mail || '---';
+    document.getElementById('profilePass').textContent = myInfo.pass || '123456';
+    document.getElementById('gvOldPass').value = myInfo.pass || '123456';
+
+    const materials = myInfo.taiLieu || [];
+    if(materials.length === 0) {
+        document.getElementById('profileMaterials').innerHTML = '<span class="text-muted small">Chưa có tài liệu nào.</span>';
+    } else {
+        let matHtml = '';
+        materials.forEach(m => {
+            matHtml += `<span class="badge bg-warning text-dark p-2 fs-6"><i class="fa-solid fa-book me-1"></i> ${m.ten} (Mã: ${m.code || 'TL'}) - SL: ${m.sl}</span>`;
+        });
+        document.getElementById('profileMaterials').innerHTML = matHtml;
+    }
+}
+
+/* ================= ĐỔI MẬT KHẨU CÁ NHÂN & ĐỒNG BỘ ================= */
+function saveNewPassGV(e) {
+    e.preventDefault();
+    const newPass = document.getElementById('gvNewPass').value.trim();
+    const confirmPass = document.getElementById('gvConfirmPass').value.trim();
+
+    if (newPass !== confirmPass) {
+        alert('Mật khẩu xác nhận không trùng khớp!');
+        return;
+    }
+
+    // Đồng bộ vào giaoVienList
+    const allGV = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    const idx = allGV.findIndex(g => g.ma === myInfo.ma);
+    if (idx !== -1) {
+        allGV[idx].pass = newPass;
+        localStorage.setItem('giaoVienList', JSON.stringify(allGV));
+    }
+
+    // Đồng bộ vào currentUser
+    currentUser.pass = newPass;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+    myInfo.pass = newPass;
+    initMyData();
+
+    showToast('Đã đổi mật khẩu thành công & Đồng bộ dữ liệu Admin!');
+    closeModal('modalDoiMKGV');
+    document.getElementById('formDoiMKGV').reset();
+}
+
+/* ================= TAB 2: LỚP & HỌC SINH ================= */
+function renderMyClasses() {
+    const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const allHS = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const myClasses = allLop.filter(l => l.gvMa === myInfo.ma);
+    
+    let html = '';
+    if(myClasses.length === 0) {
+        html = '<div class="alert alert-warning">Bạn chưa được phân công phụ trách lớp học nào.</div>';
+    } else {
+        myClasses.forEach((lop, idx) => {
+            const classStudents = allHS.filter(h => h.lopMa === lop.ma);
+            let studentRows = '';
+            classStudents.forEach((hs, stt) => {
+                studentRows += `<tr>
+                    <td>${stt + 1}</td>
+                    <td><span class="badge bg-info text-dark">${hs.ma}</span></td>
+                    <td class="fw-bold text-primary">${hs.ten}</td>
+                    <td>${hs.ngaySinh || '---'}</td>
+                    <td>${hs.phone || '---'}</td>
+                    <td>${hs.tenPH || '---'}</td>
+                </tr>`;
+            });
+
+            if(!studentRows) studentRows = '<tr><td colspan="6" class="text-muted text-center">Lớp chưa có học sinh.</td></tr>';
+
+            html += `
+            <div class="accordion-item mb-3 border border-orange rounded-3 overflow-hidden shadow-sm">
+                <h2 class="accordion-header" id="heading${idx}">
+                    <button class="accordion-button collapsed fw-bold text-orange bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${idx}">
+                        <i class="fa-solid fa-chalkboard me-2"></i> LỚP: ${lop.ten} (${lop.ma}) - Sĩ số: ${classStudents.length} Học sinh
+                    </button>
+                </h2>
+                <div id="collapse${idx}" class="accordion-collapse collapse" data-bs-parent="#classListContainer">
+                    <div class="accordion-body p-0">
+                        <table class="table table-sm table-striped text-center align-middle m-0">
+                            <thead class="table-secondary">
+                                <tr><th>STT</th><th>Mã HS</th><th>Họ & Tên Học Sinh</th><th>Ngày Sinh</th><th>SĐT Phụ Huynh</th><th>Tên Phụ Huynh</th></tr>
+                            </thead>
+                            <tbody>${studentRows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    document.getElementById('classListContainer').innerHTML = html;
+}
+
+/* ================= TAB 3: THỜI KHÓA BIỂU DẠY (BẢNG CỘT GIỐNG ADMIN) ================= */
+function initDateTimeSelects() {
+    const yearSelect = document.getElementById('tkbYear');
+    const monthSelect = document.getElementById('tkbMonth');
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth() + 1;
+
+    yearSelect.innerHTML = '';
+    for (let y = curYear - 1; y <= curYear + 2; y++) {
+        yearSelect.innerHTML += `<option value="${y}" ${y === curYear ? 'selected' : ''}>Năm ${y}</option>`;
+    }
+
+    monthSelect.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+        monthSelect.innerHTML += `<option value="${m}" ${m === curMonth ? 'selected' : ''}>Tháng ${m}</option>`;
+    }
+
+    updateWeekOptions();
+}
+
+function updateWeekOptions() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const weekSelect = document.getElementById('tkbWeek');
+
+    weekSelect.innerHTML = '';
+    for (let w = 1; w <= 5; w++) {
+        const dates = getWeekDates(year, month, w);
+        if (w === 5 && dates[0].getMonth() + 1 !== month) break;
+
+        const startStr = `${dates[0].getDate().toString().padStart(2, '0')}/${(dates[0].getMonth() + 1).toString().padStart(2, '0')}`;
+        const endStr = `${dates[6].getDate().toString().padStart(2, '0')}/${(dates[6].getMonth() + 1).toString().padStart(2, '0')}`;
+        weekSelect.innerHTML += `<option value="${w}">Tuần ${w} (${startStr} - ${endStr})</option>`;
+    }
+    weekSelect.value = 1;
+}
+
+function onYearMonthChange() {
+    updateWeekOptions();
+    renderTKBGrid();
+}
+
+function changeWeek(offset) {
+    const weekSelect = document.getElementById('tkbWeek');
+    let curWeek = parseInt(weekSelect.value) + offset;
+    if (curWeek >= 1 && curWeek <= weekSelect.options.length) {
+        weekSelect.value = curWeek;
+        renderTKBGrid();
+    }
+}
+
+function setCurrentWeek() {
+    initDateTimeSelects();
+    renderTKBGrid();
+}
+
+function renderTKBGrid() {
+    const year = parseInt(document.getElementById('tkbYear').value);
+    const month = parseInt(document.getElementById('tkbMonth').value);
+    const weekIndex = parseInt(document.getElementById('tkbWeek').value);
+
+    const dates = getWeekDates(year, month, weekIndex);
+    const startDateStr = `${dates[0].getDate()}/${dates[0].getMonth() + 1}/${dates[0].getFullYear()}`;
+    const endDateStr = `${dates[6].getDate()}/${dates[6].getMonth() + 1}/${dates[6].getFullYear()}`;
+    document.getElementById('weekRangeLabel').textContent = `Tuần ${weekIndex}: Từ ${startDateStr} đến ${endDateStr}`;
+
+    const headerRow = document.getElementById('tkbHeaderRow');
+    let headerHtml = '<th style="width: 130px;">Ca / Thời Gian</th>';
+    const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
+    for (let i = 0; i < 7; i++) {
+        const dStr = `${dates[i].getDate().toString().padStart(2, '0')}/${(dates[i].getMonth() + 1).toString().padStart(2, '0')}`;
+        headerHtml += `<th>${dayNames[i]}<br><small>(${dStr})</small></th>`;
+    }
+    headerRow.innerHTML = headerHtml;
+
+    const shiftTimes = [
+        { id: 'C1', name: 'Sáng Ca 1', time: '08:00 - 09:30' },
+        { id: 'C2', name: 'Sáng Ca 2', time: '09:30 - 11:00' },
+        { id: 'C3', name: 'Chiều Ca 1', time: '14:00 - 15:30' },
+        { id: 'C4', name: 'Chiều Ca 2', time: '15:30 - 17:00' },
+        { id: 'C5', name: 'Tối Ca 1', time: '17:30 - 19:00' },
+        { id: 'C6', name: 'Tối Ca 2', time: '19:00 - 20:30' }
+    ];
+
+    const allTkb = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const allPhong = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const allHS = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+
+    let gridHtml = '';
+    shiftTimes.forEach(shift => {
+        gridHtml += `<tr>`;
+        gridHtml += `<td class="time-col"><strong>${shift.name}</strong><br><small>${shift.time}</small></td>`;
+
+        for (let i = 0; i < 7; i++) {
+            const dateStr = formatDateISO(dates[i]);
+            let cellItems = '';
+
+            allTkb.forEach((t) => {
+                if (t.gvMa === myInfo.ma && t.ngay === dateStr && t.ca === shift.id) {
+                    const phong = allPhong.find(p => p.ma === t.phongMa) || { ten: 'Phòng', icon: '🏫' };
+                    const lop = allLop.find(l => l.ma === t.lopMa) || { ten: 'Lớp' };
+
+                    const classHS = allHS.filter(h => h.lopMa === t.lopMa);
+                    let checkedCount = 0;
+                    classHS.forEach(h => {
+                        if (diemDanhList.includes(`${t.id}_${h.ma}`)) checkedCount++;
+                    });
+
+                    let statusDDStr = checkedCount > 0 ? `Đã điểm danh (${checkedCount}/${classHS.length})` : `Chưa điểm danh (0/${classHS.length})`;
+
+                    cellItems += `<div class="tkb-card">
+                        <span class="room-badge">${phong.icon || '🏫'} ${phong.ten}</span>
+                        <div class="class-name text-primary">${lop.ten}</div>
+                        <div class="mt-1"><span class="badge ${checkedCount > 0 ? 'bg-success' : 'bg-warning text-dark'} small">${statusDDStr}</span></div>
+                        <div class="mt-2 text-end">
+                            <button class="btn btn-sm btn-green py-0 px-2 fs-7" onclick="openDiemDanh('${t.id}')"><i class="fa-solid fa-clipboard-user me-1"></i>Điểm danh</button>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            gridHtml += `<td>${cellItems}</td>`;
+        }
+        gridHtml += `</tr>`;
+    });
+
+    document.getElementById('tkbGridBody').innerHTML = gridHtml;
+}
+
+/* ================= ĐIỂM DANH HỌC SINH & ĐỒNG BỘ SYSTEM ================= */
+function openDiemDanh(lichId) {
+    const allTkb = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const item = allTkb.find(t => t.id === lichId);
+    if (!item) return;
+
+    currentDiemDanhItem = item;
+    const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const lop = allLop.find(l => l.ma === item.lopMa) || { ten: 'Lớp' };
+    
+    document.getElementById('ddInfoClass').textContent = `Lớp: ${lop.ten} (${item.lopMa})`;
+    document.getElementById('ddInfoTime').textContent = `Ngày: ${item.ngay} | Ca: ${item.ca}`;
+
+    const allHS = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const classHS = allHS.filter(h => h.lopMa === item.lopMa && h.ngayNhapHoc <= item.ngay);
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+
+    let html = '';
+    classHS.forEach(h => {
+        const ddKey = `${item.id}_${h.ma}`;
+        const isChecked = diemDanhList.includes(ddKey) ? 'checked' : '';
+        html += `<tr>
+            <td><span class="badge bg-info text-dark">${h.ma}</span></td>
+            <td class="fw-bold text-primary">${h.ten}</td>
+            <td>
+                <div class="form-check form-switch d-flex justify-content-center">
+                    <input class="form-check-input dd-checkbox fs-4" type="checkbox" value="${h.ma}" ${isChecked}>
+                </div>
+            </td>
+        </tr>`;
+    });
+
+    if (!html) html = `<tr><td colspan="3" class="text-muted">Không có học sinh nào hợp lệ điểm danh vào ngày này.</td></tr>`;
+    document.getElementById('ddHocSinhListBody').innerHTML = html;
+    openModal('modalDiemDanh');
+}
+
+function saveDiemDanh() {
+    if (!currentDiemDanhItem) return;
+    const checkboxes = document.querySelectorAll('.dd-checkbox');
+    let diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+
+    checkboxes.forEach(cb => {
+        const ddKey = `${currentDiemDanhItem.id}_${cb.value}`;
+        const index = diemDanhList.indexOf(ddKey);
+        if (cb.checked && index === -1) diemDanhList.push(ddKey);
+        else if (!cb.checked && index !== -1) diemDanhList.splice(index, 1);
+    });
+
+    localStorage.setItem('diemDanhList', JSON.stringify(diemDanhList));
+    showToast('Lưu điểm danh thành công! Dữ liệu đã đồng bộ lập tức cho Admin.');
+    closeModal('modalDiemDanh');
+    renderTKBGrid();
+    renderSalaryReport();
+}
+
+/* ================= TAB 4: BÁO CÁO LƯƠNG & PHỤ CẤP / KHẤU TRỪ ================= */
+function initSalaryPeriods() {
+    const lockList = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
+    const select = document.getElementById('salaryPeriodSelect');
+    let html = '<option value="ALL">--- Chọn kỳ báo cáo (Hoặc xem Toàn thời gian) ---</option>';
+    lockList.forEach(p => {
+        html += `<option value="${p.id}">${p.name} (${p.fromDate} đến ${p.toDate})</option>`;
+    });
+    select.innerHTML = html;
+    if(lockList.length > 0) select.value = lockList[lockList.length - 1].id;
+    renderSalaryReport();
+}
+
+function renderSalaryReport() {
+    const periodId = document.getElementById('salaryPeriodSelect').value;
+    const lockList = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
+    let fromDate = null, toDate = null;
+    let periodName = "Toàn bộ thời gian";
+
+    if (periodId !== 'ALL') {
+        const p = lockList.find(x => x.id === periodId);
+        if(p) { fromDate = p.fromDate; toDate = p.toDate; periodName = p.name; }
+    }
+
+    const allTkb = JSON.parse(localStorage.getItem('tkbList')) || [];
+    const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    const allPhong = JSON.parse(localStorage.getItem('phongHocList')) || [];
+    const allHS = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
+    const savedSalaryList = JSON.parse(localStorage.getItem('savedSalaryList')) || [];
+
+    // Tìm thông tin Lương Admin đã lưu cho GV này (nếu có)
+    const savedSalary = savedSalaryList.find(s => s.gvMa === myInfo.ma) || { phuCap: 0, khauTru: 0 };
+    const phuCapVal = Number(savedSalary.phuCap || 0);
+    const khauTruVal = Number(savedSalary.khauTru || 0);
+
+    const mucLuongCa = Number(myInfo.luong || 150000);
+    let caDuocGiao = 0;
+    let caDaDiemDanh = 0;
+    let html = '';
+
+    allTkb.forEach(t => {
+        if (t.gvMa === myInfo.ma) {
+            if (fromDate && t.ngay < fromDate) return;
+            if (toDate && t.ngay > toDate) return;
+
+            caDuocGiao++;
+            const classHS = allHS.filter(h => h.lopMa === t.lopMa);
+            let hasDD = false;
+            classHS.forEach(h => { if (diemDanhList.includes(`${t.id}_${h.ma}`)) hasDD = true; });
+
+            if (hasDD) caDaDiemDanh++;
+
+            const phong = allPhong.find(p => p.ma === t.phongMa) || { ten: 'Phòng' };
+            const lop = allLop.find(l => l.ma === t.lopMa) || { ten: 'Lớp' };
+
+            html += `<tr>
+                <td><code>${t.ngay} / ${t.ca}</code></td>
+                <td>${phong.ten}</td>
+                <td>${lop.ten}</td>
+                <td><span class="badge ${hasDD ? 'bg-success' : 'bg-warning text-dark'}">${hasDD ? 'Đã điểm danh' : 'Chưa điểm danh'}</span></td>
+                <td class="text-danger fw-bold">${(hasDD ? mucLuongCa : 0).toLocaleString()} đ</td>
+            </tr>`;
+        }
+    });
+
+    const tongLuongCa = caDaDiemDanh * mucLuongCa;
+    const thucNhan = tongLuongCa + phuCapVal - khauTruVal;
+
+    document.getElementById('salDetailBody').innerHTML = html || `<tr><td colspan="5" class="text-muted">Không có dữ liệu ca dạy trong kỳ này.</td></tr>`;
+    document.getElementById('salTotalAssigned').textContent = caDuocGiao;
+    document.getElementById('salTotalAttended').textContent = caDaDiemDanh;
+    document.getElementById('salTotalMoney').textContent = tongLuongCa.toLocaleString() + ' đ';
+    document.getElementById('salPhuCap').textContent = `+${phuCapVal.toLocaleString()} đ`;
+    document.getElementById('salKhauTru').textContent = `-${khauTruVal.toLocaleString()} đ`;
+    document.getElementById('salThucNhan').textContent = thucNhan.toLocaleString() + ' VNĐ';
+
+    window.tempSalaryData = {
+        periodName, fromDate: fromDate || '---', toDate: toDate || '---',
+        caDuocGiao, caDaDiemDanh, tongLuongCa, phuCapVal, khauTruVal, thucNhan, htmlRows: html
+    };
+}
+
+/* ================= XUẤT PDF CHUẨN A4 ================= */
+function previewPDF() {
+    const data = window.tempSalaryData;
+    if (!data) return;
+
+    const pdfContent = `
+        <div style="width: 190mm; padding: 10mm; font-family: 'Be Vietnam Pro', sans-serif; font-size: 9pt; line-height: 1.3; color: #222; background: white; box-sizing: border-box;">
+            <div style="text-align: center; border-bottom: 2px solid #ff5e00; padding-bottom: 6px; margin-bottom: 10px;">
+                <h2 style="color: #ff5e00; font-weight: 800; margin: 0; font-size: 14pt; text-transform: uppercase;">TRUNG TÂM NGOẠI NGỮ THẦN ĐỒNG</h2>
+                <h3 style="margin: 4px 0; font-size: 11pt; color: #333;">BÁO CÁO THỜI GIAN DẠY & BẢNG LƯƠNG GIÁO VIÊN</h3>
+                <div style="font-size: 8.5pt; color: #555;">Kỳ báo cáo: <b>${data.periodName}</b> (Từ ${data.fromDate} đến ${data.toDate})</div>
+            </div>
+
+            <div style="border: 1px solid #ff5e00; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; background: #fffaf8;">
+                <div style="font-weight: bold; color: #ff5e00; font-size: 9pt; margin-bottom: 5px;">I. THÔNG TIN GIÁO VIÊN</div>
+                <table style="width: 100%; border: none; font-size: 8.5pt;">
+                    <tr>
+                        <td style="width: 50%; padding: 2px 0;"><b>Họ và Tên:</b> ${myInfo.ten}</td>
+                        <td style="width: 50%; padding: 2px 0;"><b>Mã GV:</b> ${myInfo.ma}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2px 0;"><b>Điện thoại:</b> ${myInfo.phone || '---'}</td>
+                        <td style="padding: 2px 0;"><b>Mức lương dạy:</b> ${Number(myInfo.luong || 150000).toLocaleString()} VNĐ/Ca</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="border: 1px solid #28a745; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; background: #f8fff9;">
+                <div style="font-weight: bold; color: #28a745; font-size: 9pt; margin-bottom: 5px;">II. TỔNG HỢP LƯƠNG THỰC NHẬN</div>
+                <table style="width: 100%; border: none; font-size: 8.5pt;">
+                    <tr>
+                        <td style="width: 33%; padding: 2px 0;"><b>Ca được giao:</b> ${data.caDuocGiao} ca</td>
+                        <td style="width: 33%; padding: 2px 0;"><b>Ca thực dạy:</b> <b style="color: blue;">${data.caDaDiemDanh} ca</b></td>
+                        <td style="width: 34%; padding: 2px 0;"><b>Tổng lương dạy:</b> ${data.tongLuongCa.toLocaleString()} đ</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2px 0;"><b>Phụ cấp (+):</b> ${data.phuCapVal.toLocaleString()} đ</td>
+                        <td style="padding: 2px 0;"><b>Khấu trừ (-):</b> ${data.khauTruVal.toLocaleString()} đ</td>
+                        <td style="padding: 2px 0;"><b>👉 THỰC NHẬN:</b> <b style="color: red; font-size: 11pt;">${data.thucNhan.toLocaleString()} VNĐ</b></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="font-weight: bold; font-size: 9pt; text-transform: uppercase; margin-bottom: 6px; color: #333;">
+                III. CHI TIẾT CÁC CA ĐÃ DẠY CỤ THỂ
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 8pt; text-align: center;">
+                <thead>
+                    <tr style="background-color: #fff0e6; color: #d64045;">
+                        <th style="border: 1px solid #ccc; padding: 6px;">Ngày / Ca</th>
+                        <th style="border: 1px solid #ccc; padding: 6px;">Phòng Học</th>
+                        <th style="border: 1px solid #ccc; padding: 6px;">Lớp Học</th>
+                        <th style="border: 1px solid #ccc; padding: 6px;">Điểm Danh</th>
+                        <th style="border: 1px solid #ccc; padding: 6px;">Lương Tính</th>
+                    </tr>
+                </thead>
+                <tbody>${data.htmlRows.replace(/<code/g, '<span').replace(/<\/code>/g, '</span>')}</tbody>
+            </table>
+
+            <div style="margin-top: 25px; width: 100%;">
+                <table style="width: 100%; font-size: 8.5pt; text-align: center; border: none;">
+                    <tr>
+                        <td style="width: 50%; vertical-align: top;">
+                            <b>GIÁO VIÊN KÝ TÊN</b><br>
+                            <i style="font-size: 7.5pt; color: #666;">(Ký và ghi rõ họ tên)</i><br><br><br><br>
+                            <b>${myInfo.ten}</b>
+                        </td>
+                        <td style="width: 50%; vertical-align: top;">
+                            <b>ĐẠI DIỆN TRUNG TÂM</b><br>
+                            <i style="font-size: 7.5pt; color: #666;">(Ký, đóng dấu)</i><br><br><br><br>
+                            <b>ADMIN</b>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('pdfTargetContent').innerHTML = pdfContent;
+    openModal('modalPreviewPDF');
+}
+
+function downloadPDF() {
+    const element = document.getElementById('pdfTargetContent');
+    const opt = {
+        margin: [5, 5, 5, 5],
+        filename: `BangLuong_${myInfo.ma}_${Date.now()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+/* ================= INIT ON LOAD ================= */
+document.addEventListener('DOMContentLoaded', () => {
+    initMyData();
+    renderMyClasses();
+    initDateTimeSelects();
+    renderTKBGrid();
+    initSalaryPeriods();
+});
+</script>
+</body>
+</html>

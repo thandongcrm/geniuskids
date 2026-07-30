@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM GENIUS KIDS L.C - Hệ thống quản lý trung tâm Thần Đồng</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUBJuv76X2GbhEGgGUat2O_g9rX5Bb0nA",
+    authDomain: "crm-tt-genius-kids.firebaseapp.com",
+    projectId: "crm-tt-genius-kids",
+    storageBucket: "crm-tt-genius-kids.firebasestorage.app",
+    messagingSenderId: "42080302170",
+    appId: "1:42080302170:web:df2e514cde42d500c85463"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  
+  // Gắn ra window để các hàm bên dưới gọi được
+  window.db = db;
+  console.log("Firebase đã sẵn sàng kết nối!");
+</script>    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-orange: #ff5e00;
+            --bright-orange: #ff7b00;
+            --accent-green: #00e676;
+            --font-main: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+        }
+
+        * { font-family: var(--font-main); box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(135deg, #ff4e00 0%, #ff8c00 40%, #e60067 75%, #8e24aa 100%);
+            background-size: 300% 300%;
+            animation: gradientBG 8s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #effectsCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35), 0 0 30px rgba(255, 94, 0, 0.4);
+            padding: 42px 38px;
+            width: 90%;
+            max-width: 450px;
+            border: 3.5px solid var(--bright-orange);
+            z-index: 10;
+            position: relative;
+            backdrop-filter: blur(12px);
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover { transform: translateY(-4px); }
+
+        .brand-badge {
+            width: 75px; height: 75px;
+            background: linear-gradient(135deg, #ff5e00, #ffaa00);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px auto;
+            box-shadow: 0 8px 20px rgba(255, 94, 0, 0.4), 0 0 0 6px rgba(0, 230, 118, 0.25);
+            border: 3px solid var(--accent-green);
+        }
+
+        .brand-badge i {
+            color: #ffffff;
+            font-size: 2.2rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .brand-title {
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 4px;
+            font-size: 1.95rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #ff3d00, #ff9100, #00e676);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shineText 4s linear infinite;
+        }
+
+        @keyframes shineText { to { background-position: 200% center; } }
+
+        .brand-subtitle {
+            color: #2e7d32;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 26px;
+            background: #e8f5e9;
+            padding: 4px 14px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .subtitle-wrapper { text-align: center; }
+
+        .form-label {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: #222222;
+            margin-bottom: 6px;
+        }
+
+        .input-group-custom { position: relative; }
+
+        .form-control {
+            border-radius: 14px;
+            border: 2px solid #ffd0b8;
+            padding: 12px 18px 12px 42px;
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: #2b2d42;
+            transition: all 0.25s ease;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px; top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.25);
+            background-color: #ffffff;
+        }
+
+        .btn-custom {
+            background: linear-gradient(45deg, #ff5e00, #ff9100);
+            border: none;
+            color: #ffffff;
+            font-weight: 800;
+            border-radius: 16px;
+            padding: 14px;
+            font-size: 1.1rem;
+            letter-spacing: 0.8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 94, 0, 0.45);
+        }
+
+        .btn-custom:hover {
+            background: linear-gradient(45deg, #00c853, #ff7b00);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 12px 30px rgba(0, 200, 83, 0.4);
+            color: #ffffff;
+        }
+
+        .footer-text {
+            position: relative;
+            z-index: 10;
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            font-size: 0.92rem;
+            text-align: center;
+            margin-top: 28px;
+            padding: 0 20px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .footer-text span { color: #00ff88; font-weight: 700; }
+
+        #successOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(10, 15, 30, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease-out;
+            backdrop-filter: blur(8px);
+        }
+
+        #successOverlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .congrat-card {
+            background: linear-gradient(135deg, #ff5e00 0%, #ff0055 50%, #00e676 100%);
+            padding: 38px 32px;
+            border-radius: 30px;
+            border: 3px solid #ffffff;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(255, 94, 0, 0.8), 0 0 30px rgba(0, 230, 118, 0.6);
+            transform: scale(0.7);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
+            width: 440px;
+        }
+
+        #successOverlay.active .congrat-card { transform: scale(1); }
+
+        .congrat-card h1 {
+            font-weight: 800;
+            font-size: 1.65rem;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="effectsCanvas"></canvas>
+
+<div class="login-card">
+    <div class="brand-badge">
+        <i class="fa-solid fa-graduation-cap"></i>
+    </div>
+    <h2 class="brand-title">CRM GENIUS KIDS L.C</h2>
+    <div class="subtitle-wrapper">
+        <div class="brand-subtitle">
+            <i class="fa-solid fa-sparkles me-1" style="color: #ff9100;"></i> Hệ thống quản lý trung tâm Thần Đồng
+        </div>
+    </div>
+    
+    <div id="alertBox" class="alert alert-danger d-none fw-semibold rounded-3 text-center" role="alert"></div>
+
+    <form id="loginForm">
+        <div class="mb-3">
+            <label class="form-label">Tài khoản / Email / Mã số</label>
+            <div class="input-group-custom">
+                <i class="fa-solid fa-envelope input-icon"></i>
+                <input type="text" id="email" class="form-control" placeholder="Email hoặc Mã tài khoản..." required autocomplete="username">
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="form-label">Mật khẩu</label>
+            <div class="input-group-custom">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input type="password" id="password" class="form-control" placeholder="Mật khẩu..." required autocomplete="current-password">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-custom w-100 mb-2">
+            <i class="fa-solid fa-right-to-bracket me-2"></i>ĐĂNG NHẬP NGAY
+        </button>
+    </form>
+</div>
+
+<div class="footer-text">
+    Ứng dụng quản lý trung tâm Anh ngữ - Phát triển bởi <span>Thần Đồng Siêu Nhí</span>.
+</div>
+
+<!-- Màn hình chúc mừng -->
+<div id="successOverlay">
+    <div class="congrat-card">
+        <div class="mb-2">
+            <i class="fa-solid fa-face-smile-beam fa-4x text-warning"></i>
+        </div>
+        <h1 class="mb-2 text-white">XIN CHÀO MỪNG!</h1>
+        <p class="fs-6 mb-3 fw-semibold text-white opacity-90" id="welcomeMsg">Đăng nhập thành công!</p>
+        <div class="spinner-border text-light mb-2" style="width: 2rem; height: 2rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mb-0 text-white-50"><small>Đang vào hệ thống...</small></p>
+    </div>
+</div>
+
+<script>
+// 1. Canvas Hiệu ứng Pháo hoa
+const canvas = document.getElementById('effectsCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+let particles = [];
+const colors = ['#ff5e00', '#ffaa00', '#00e676', '#00b0ff', '#ff0055', '#e040fb', '#ffff00'];
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 2;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.alpha = 1;
+        this.decay = Math.random() * 0.03 + 0.015;
+        this.gravity = 0.12;
+    }
+    update() {
+        this.vx *= 0.96; this.vy *= 0.96;
+        this.vy += this.gravity;
+        this.x += this.vx; this.y += this.vy;
+        this.alpha -= this.decay;
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = Math.max(this.alpha, 0);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+function launchFireworks() {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * (canvas.height * 0.5);
+    for (let i = 0; i < 60; i++) {
+        particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+    }
+}
+
+function animate() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].alpha <= 0) particles.splice(i, 1);
+    }
+    requestAnimationFrame(animate);
+}
+animate();
+
+setInterval(() => { if (Math.random() > 0.6) launchFireworks(); }, 1200);
+
+// 2. Hàm hỗ trợ đọc tên tiếng Việt thành Email
+function removeAccents(str) {
+    if (!str) return '';
+    return str.normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+              .toLowerCase().trim();
+}
+
+function generateSmartEmail(fullName) {
+    if (!fullName || !fullName.trim()) return '';
+    const cleanStr = removeAccents(fullName).replace(/[^a-z0-9\s]/g, '');
+    const parts = cleanStr.split(/\s+/);
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0] + '@thandong.com';
+
+    const lastName = parts[parts.length - 1];
+    let initials = '';
+    for (let i = 0; i < parts.length - 1; i++) initials += parts[i].charAt(0);
+    return (lastName + initials + '@thandong.com');
+}
+
+// 3. Khởi tạo & Lấy toàn bộ danh sách tài khoản hợp lệ từ localStorage
+function getAllValidAccounts() {
+    const accountList = [];
+
+    // Danh sách mật khẩu hợp lệ cho Admin
+    const adminPasswords = ['Rich@2007', 'Thandong@123', '123456'];
+    adminPasswords.forEach(pass => {
+        accountList.push({
+            email: 'admin@thandong.com',
+            code: 'ADMIN',
+            pass: pass,
+            role: 'admin',
+            name: 'Quản trị viên Admin'
+        });
+    });
+
+    // Danh sách Giáo Viên do Admin khởi tạo
+    const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
+    gvList.forEach(g => {
+        accountList.push({
+            email: g.mail || generateSmartEmail(g.ten),
+            code: g.ma,
+            pass: g.pass || '123456',
+            role: 'giaovien',
+            name: g.ten,
+            ma: g.ma
+        });
+    });
+
+    // Danh sách Học Sinh do Admin khởi tạo
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    hsList.forEach(h => {
+        accountList.push({
+            email: h.mail || generateSmartEmail(h.ten),
+            code: h.ma,
+            pass: h.pass || '123456',
+            role: 'hocsinh',
+            name: h.ten,
+            ma: h.ma
+        });
+    });
+
+    return accountList;
+}
+
+// 4. Xử lý Đăng Nhập & Chuyển Trang Đúng Vai Trò
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const inputUser = document.getElementById('email').value.trim().toLowerCase();
+    const inputPass = document.getElementById('password').value.trim();
+    const alertBox = document.getElementById('alertBox');
+
+    const accounts = getAllValidAccounts();
+    const matchedUser = accounts.find(acc => 
+        (acc.email.toLowerCase() === inputUser || acc.code.toLowerCase() === inputUser) && acc.pass === inputPass
+    );
+
+    if (matchedUser) {
+        // LƯU CHÍNH XÁC THÔNG TIN NGƯỜI DÙNG VỪA ĐĂNG NHẬP VÀO LOCALSTORAGE
+        localStorage.setItem('currentUser', JSON.stringify(matchedUser));
+        alertBox.classList.add('d-none');
+
+        document.getElementById('welcomeMsg').textContent = `Xin chào ${matchedUser.name}!`;
+        document.getElementById('successOverlay').classList.add('active');
+
+        for (let i = 0; i < 5; i++) setTimeout(launchFireworks, i * 150);
+
+        confetti({
+            particleCount: 120,
+            spread: 100,
+            origin: { y: 0.6 },
+            colors: ['#ff5e00', '#00e676', '#ffaa00', '#ff0055', '#00b0ff']
+        });
+
+        // Chuyển trang đúng file của từng người sau 1s
+        setTimeout(() => {
+            if (matchedUser.role === 'admin') {
+                window.location.href = 'adminhs.html';
+            } else if (matchedUser.role === 'giaovien') {
+                window.location.href = 'giaovienhs.html';
+            } else if (matchedUser.role === 'hocsinh') {
+                window.location.href = 'hocsinh.html';
+            } else {
+                window.location.href = 'adminhs.html';
+            }
+        }, 1000);
+
+    } else {
+        alertBox.textContent = 'Mật khẩu, email hoặc mã số không chính xác!';
+        alertBox.classList.remove('d-none');
+    }
+});
+</script>
+</body>
+</html>
