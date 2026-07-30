@@ -48,7 +48,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (typeof initMyData === 'function') initMyData();
     if (typeof renderTKBGrid === 'function') renderTKBGrid();
     if (typeof renderFeeReport === 'function') renderFeeReport();
-}); 
+    
+    // Gọi thêm lần nữa để ép vẽ lịch sau khi data đã về máy
+    setTimeout(() => {
+        if (typeof renderTKBGrid === 'function') renderTKBGrid();
+    }, 500);
+});
 </script>    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
