@@ -366,7 +366,7 @@ animate();
 
 setInterval(() => { if (Math.random() > 0.6) launchFireworks(); }, 1200);
 
-// 2. Hàm hỗ trợ đọc tên tiếng Việt thành Email
+// Hàm hỗ trợ đọc tên tiếng Việt thành Email
 function removeAccents(str) {
     if (!str) return '';
     return str.normalize('NFD')
@@ -388,11 +388,39 @@ function generateSmartEmail(fullName) {
     return (lastName + initials + '@thandong.com');
 }
 
-// 3. Khởi tạo & Lấy toàn bộ danh sách tài khoản hợp lệ từ localStorage
+// HÀM ĐỒNG BỘ DỮ LIỆU TỪ FIREBASE CLOUD FIRESTORE VỀ LOCALSTORAGE KHI MỞ TRANG
+async function syncCloudDataToLocal() {
+    if (window.db) {
+        try {
+            const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js");
+            
+            // Tải danh sách giáo viên
+            const snapGV = await getDoc(doc(window.db, "systemData", "giaoVienList"));
+            if (snapGV.exists() && snapGV.data().payload) {
+                localStorage.setItem('giaoVienList', snapGV.data().payload);
+            }
+
+            // Tải danh sách học sinh
+            const snapHS = await getDoc(doc(window.db, "systemData", "hocSinhList"));
+            if (snapHS.exists() && snapHS.data().payload) {
+                localStorage.setItem('hocSinhList', snapHS.data().payload);
+            }
+            console.log("Đã đồng bộ dữ liệu tài khoản từ đám mây thành công!");
+        } catch (e) {
+            console.error("Lỗi tải dữ liệu từ mây:", e);
+        }
+    }
+}
+
+// Tự động tải dữ liệu đám mây ngay khi trang đăng nhập vừa load
+window.addEventListener('DOMContentLoaded', async () => {
+    await syncCloudDataToLocal();
+});
+
+// Lấy toàn bộ danh sách tài khoản hợp lệ
 function getAllValidAccounts() {
     const accountList = [];
 
-    // Danh sách mật khẩu hợp lệ cho Admin
     const adminPasswords = ['Rich@2007', 'Thandong@123', '123456'];
     adminPasswords.forEach(pass => {
         accountList.push({
@@ -404,7 +432,6 @@ function getAllValidAccounts() {
         });
     });
 
-    // Danh sách Giáo Viên do Admin khởi tạo
     const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
     gvList.forEach(g => {
         accountList.push({
@@ -417,7 +444,6 @@ function getAllValidAccounts() {
         });
     });
 
-    // Danh sách Học Sinh do Admin khởi tạo
     const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
     hsList.forEach(h => {
         accountList.push({
@@ -433,7 +459,7 @@ function getAllValidAccounts() {
     return accountList;
 }
 
-// 4. Xử lý Đăng Nhập & Chuyển Trang Đúng Vai Trò
+// Xử lý Đăng Nhập
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const inputUser = document.getElementById('email').value.trim().toLowerCase();
@@ -446,7 +472,6 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     );
 
     if (matchedUser) {
-        // LƯU CHÍNH XÁC THÔNG TIN NGƯỜI DÙNG VỪA ĐĂNG NHẬP VÀO LOCALSTORAGE
         localStorage.setItem('currentUser', JSON.stringify(matchedUser));
         alertBox.classList.add('d-none');
 
@@ -462,7 +487,6 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
             colors: ['#ff5e00', '#00e676', '#ffaa00', '#ff0055', '#00b0ff']
         });
 
-        // Chuyển trang đúng file của từng người sau 1s
         setTimeout(() => {
             if (matchedUser.role === 'admin') {
                 window.location.href = 'adminhs.html';
