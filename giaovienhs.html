@@ -6,7 +6,7 @@
     <title>Cổng Thông Tin Giáo Viên - GENIUS KIDS L.C</title>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAUBJuv76X2GbhEGgGUat2O_g9rX5Bb0nA",
@@ -20,9 +20,38 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   
-  // Gắn ra window để các hàm bên dưới gọi được
   window.db = db;
-  console.log("Firebase đã sẵn sàng kết nối!");
+  window.FirestoreDeps = { doc, getDoc, setDoc };
+  console.log("Firebase đã sẵn sàng kết nối tại trang giáo viên!");
+
+  async function syncCloudDataToLocal() {
+      if (window.db && window.FirestoreDeps) {
+          try {
+              const { doc, getDoc } = window.FirestoreDeps;
+              const keys = ['hocSinhList', 'giaoVienList', 'lopHocList', 'tkbList', 'diemDanhList', 'phongHocList', 'thuTienGiaoDichList', 'bankAccounts', 'lockPeriodsList'];
+              
+              for (let key of keys) {
+                  const snap = await getDoc(doc(window.db, "systemData", key));
+                  if (snap.exists() && snap.data().payload) {
+                      localStorage.setItem(key, snap.data().payload);
+                  }
+              }
+              console.log("Đã đồng bộ toàn bộ dữ liệu từ đám mây thành công cho giáo viên!");
+          } catch (e) {
+              console.error("Lỗi tải dữ liệu từ mây:", e);
+          }
+      }
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+      await syncCloudDataToLocal();
+      if (typeof initTeacherData === 'function') initTeacherData();
+      if (typeof renderTeacherTKB === 'function') renderTeacherTKB();
+      
+      setTimeout(() => {
+          if (typeof renderTeacherTKB === 'function') renderTeacherTKB();
+      }, 500);
+  });
 </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
