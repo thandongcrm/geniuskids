@@ -408,7 +408,20 @@
 
             <!-- 4. Danh sách Học Sinh -->
             <div class="custom-card">
-                <div class="card-header-title"><i class="fa-solid fa-user-graduate fa-lg"></i> DANH SÁCH HỌC SINH (Rê chuột lắc lư - Nhấp vào tên để Sửa/Xóa)</div>
+              <!-- 4. Danh sách Học Sinh -->
+            <div class="custom-card">
+                <div class="card-header-title d-flex justify-content-between align-items-center flex-wrap">
+                    <span><i class="fa-solid fa-user-graduate fa-lg"></i> DANH SÁCH HỌC SINH (Rê chuột lắc lư - Nhấp vào tên để Sửa/Xóa)</span>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-success fw-bold" onclick="exportExcelTatCaHocSinh()">
+                            <i class="fa-solid fa-file-excel me-1"></i> Tải Toàn Bộ HS (Excel)
+                        </button>
+                        <button class="btn btn-sm btn-orange fw-bold" onclick="exportExcelHocSinhTheoLop()">
+                            <i class="fa-solid fa-file-excel me-1"></i> Tải HS Theo Lớp (Excel)
+                        </button>
+                    </div>
+                </div>
+</i> DANH SÁCH HỌC SINH (Rê chuột lắc lư - Nhấp vào tên để Sửa/Xóa)</div>
                 <div class="table-responsive-custom">
                     <table class="table table-hover table-balanced align-middle">
                         <thead>
@@ -627,11 +640,16 @@
             <div class="custom-card mb-4">
                 <div class="card-header-title"><i class="fa-solid fa-receipt fa-lg"></i> 2. BÁO CÁO THEO LỚP HỌC VÀ HỌC SINH</div>
                 <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Chọn Lớp Học xem báo cáo:</label>
-                        <select class="form-select border-primary fw-bold" id="bcSelectLop" onchange="renderBaoCaoHocPhiLop()"></select>
-                    </div>
-                </div>
+    <div class="col-md-4">
+        <label class="form-label fw-bold">Chọn Lớp Học xem báo cáo:</label>
+        <select class="form-select border-primary fw-bold" id="bcSelectLop" onchange="renderBaoCaoHocPhiLop()"></select>
+    </div>
+    <!-- BỔ SUNG Ô CHỌN NGÂN HÀNG HÀNG LOẠT -->
+    <div class="col-md-4">
+        <label class="form-label fw-bold"><i class="fa-solid fa-building-columns me-1"></i> Ngân hàng thanh toán chung cho lớp:</label>
+       <select class="form-select border-success fw-bold" id="globalBankSelect" onchange="updateAllStudentQR(); renderBaoCaoHocPhiLop();"></select>
+    </div>
+</div>
 
                 <div class="table-responsive-custom mb-4">
                     <table class="table table-bordered table-balanced align-middle text-center" id="tableHocPhiLop">
@@ -1535,6 +1553,7 @@ function populateSelects() {
     const phongList = JSON.parse(localStorage.getItem('phongHocList')) || [];
     const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
     const monList = JSON.parse(localStorage.getItem('monHocList')) || [];
+    const bankList = JSON.parse(localStorage.getItem('bankAccounts')) || []; // <--- Thêm dòng này vào đây
 
     let gvHtml = '<option value="">-- Chọn Giáo Viên --</option>';
     let gvFilterHtml = '<option value="ALL">--- TẤT CẢ GV ---</option>';
@@ -1570,6 +1589,12 @@ function populateSelects() {
     gvList.forEach(g => { userHtml += `<option value="${g.ma}">${g.ten} (GV)</option>`; });
     document.getElementById('mkUserSelect').innerHTML = userHtml;
     onUserSelectChange();
+    let bankGlobalHtml = '';
+    bankList.forEach(b => {
+        bankGlobalHtml += `<option value="${b.code}_${b.accNo}">${b.code} - ${b.accNo} (${b.accName})</option>`;
+    });
+    const globalBankEl = document.getElementById('globalBankSelect');
+    if (globalBankEl) globalBankEl.innerHTML = bankGlobalHtml;
 }
 
 /* ================= QUẢN LÝ CÁC KỲ KHÓA THỜI GIAN ================= */
@@ -1625,6 +1650,7 @@ function selectLockPeriod(id) {
     renderLockPeriods();
     renderBaoCaoHocPhiLop();
     renderBaoCaoLuongGV();
+    renderSavedSalaryTable(); // <--- Thêm dòng này để cập nhật bảng lương theo kỳ
     renderThuChiTable();
     renderBaoCaoLoiNhuan();
 }
@@ -2588,10 +2614,16 @@ function renderBaoCaoLuongGV() {
     const gvMa = document.getElementById('bcSelectGV').value;
     const fromDate = document.getElementById('reportLockFrom').value;
     const toDate = document.getElementById('reportLockTo').value;
+    const currentLockId = activeLockPeriodId;
 
     const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
     const gv = gvList.find(g => g.ma === gvMa) || { luong: 150000 };
-    const mucLuongCa = Number(gv.luong || 150000);
+    
+    // Kiểm tra xem kỳ này đã lưu bảng lương riêng chưa
+    const savedSalaryList = JSON.parse(localStorage.getItem('savedSalaryList')) || [];
+    const savedForThisPeriod = savedSalaryList.find(s => s.gvMa === gvMa && s.lockId === currentLockId);
+
+    const mucLuongCa = savedForThisPeriod ? Number(savedForThisPeriod.mucLuongCa) : Number(gv.luong || 150000);
 
     const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
     const phongList = JSON.parse(localStorage.getItem('phongHocList')) || [];
@@ -2633,8 +2665,14 @@ function renderBaoCaoLuongGV() {
     document.getElementById('bcChiTietCaBody').innerHTML = chiTietHtml || `<tr><td colspan="5" class="text-muted">Chưa có ca dạy nào trong khoảng thời gian này.</td></tr>`;
 
     const tongLuongCa = caDaDiemDanh * mucLuongCa;
-    const phuCap = Number(document.getElementById('bcPhuCap').value) || 0;
-    const khauTru = Number(document.getElementById('bcKhauTru').value) || 0;
+    const phuCap = savedForThisPeriod ? Number(savedForThisPeriod.phuCap) : (Number(document.getElementById('bcPhuCap').value) || 0);
+    const khauTru = savedForThisPeriod ? Number(savedForThisPeriod.khauTru) : (Number(document.getElementById('bcKhauTru').value) || 0);
+    
+    if (savedForThisPeriod) {
+        document.getElementById('bcPhuCap').value = phuCap;
+        document.getElementById('bcKhauTru').value = khauTru;
+    }
+
     const thucNhan = tongLuongCa + phuCap - khauTru;
 
     document.getElementById('bcCaDuocGiao').textContent = caDuocGiao;
@@ -2642,41 +2680,74 @@ function renderBaoCaoLuongGV() {
     document.getElementById('bcTongLuongCa').textContent = `${tongLuongCa.toLocaleString()} VNĐ`;
     document.getElementById('bcThucNhanGV').textContent = `${thucNhan.toLocaleString()} VNĐ`;
 }
-
 async function saveLuongChoGiaoVien() {
     const gvMa = document.getElementById('bcSelectGV').value;
-    if (!gvMa) return;
+    if (!gvMa) {
+        alert('Vui lòng chọn giáo viên!');
+        return;
+    }
+    if (!activeLockPeriodId) {
+        alert('Vui lòng chọn hoặc tạo một Kỳ khóa báo cáo trước khi lưu lương!');
+        return;
+    }
+
     const gvList = JSON.parse(localStorage.getItem('giaoVienList')) || [];
     const gv = gvList.find(g => g.ma === gvMa);
+    const mucLuongCa = Number(gv.luong || 150000);
 
     const caCount = document.getElementById('bcCaDaDiemDanh').textContent;
     const phuCap = Number(document.getElementById('bcPhuCap').value) || 0;
     const khauTru = Number(document.getElementById('bcKhauTru').value) || 0;
-    const thucNhan = document.getElementById('bcThucNhanGV').textContent;
+    const thucNhanText = document.getElementById('bcThucNhanGV').textContent;
 
     const savedList = JSON.parse(localStorage.getItem('savedSalaryList')) || [];
-    savedList.push({ gvMa, ten: gv.ten, caCount, phuCap, khauTru, thucNhan });
-    await cloudSave('savedSalaryList', savedList);
+    
+    // Gắn chặt dữ liệu lương với mã Kỳ khóa (lockId) hiện tại
+    const existingIndex = savedList.findIndex(s => s.gvMa === gvMa && s.lockId === activeLockPeriodId);
+    
+    const salaryData = {
+        lockId: activeLockPeriodId,
+        gvMa,
+        ten: gv.ten,
+        caCount,
+        mucLuongCa,
+        phuCap,
+        khauTru,
+        thucNhan: thucNhanText
+    };
 
-    showToast('Đã lưu lương cho giáo viên!');
+    if (existingIndex >= 0) {
+        savedList[existingIndex] = salaryData;
+    } else {
+        savedList.push(salaryData);
+    }
+
+    await cloudSave('savedSalaryList', savedList);
+    showToast('Đã lưu bảng lương độc lập cho kỳ này thành công!');
     renderSavedSalaryTable();
 }
-
 function renderSavedSalaryTable() {
     const savedList = JSON.parse(localStorage.getItem('savedSalaryList')) || [];
+    
+    // Lọc chỉ lấy danh sách lương thuộc đúng Kỳ khóa đang active
+    const filteredList = savedList.filter(s => s.lockId === activeLockPeriodId);
+
     let html = '';
-    savedList.forEach((s, idx) => {
+    filteredList.forEach((s) => {
+        // Tìm index thực tế trong mảng gốc để khi xóa chính xác phần tử đó
+        const realIndex = savedList.findIndex(item => item.gvMa === s.gvMa && item.lockId === s.lockId);
+
         html += `<tr>
             <td><span class="badge bg-warning text-dark">${s.gvMa}</span></td>
-            <td><span class="fw-bold text-primary wiggle-item" onclick="deleteSavedSalary(${idx})">${s.ten}</span></td>
+            <td><span class="fw-bold text-primary">${s.ten}</span></td>
             <td>${s.caCount} ca</td>
-            <td>${s.phuCap.toLocaleString()} đ</td>
-            <td>${s.khauTru.toLocaleString()} đ</td>
+            <td>${Number(s.phuCap || 0).toLocaleString()} đ</td>
+            <td>${Number(s.khauTru || 0).toLocaleString()} đ</td>
             <td class="text-success fw-bold">${s.thucNhan}</td>
-            <td><button class="btn btn-sm btn-outline-danger" onclick="deleteSavedSalary(${idx})"><i class="fa-solid fa-trash"></i> Xóa</button></td>
+            <td><button class="btn btn-sm btn-outline-danger" onclick="deleteSavedSalary(${realIndex})"><i class="fa-solid fa-trash"></i> Xóa</button></td>
         </tr>`;
     });
-    document.getElementById('tableSavedSalaryBody').innerHTML = html;
+    document.getElementById('tableSavedSalaryBody').innerHTML = html || `<tr><td colspan="7" class="text-muted">Chưa có bảng lương nào được lưu cho kỳ này.</td></tr>`;
 }
 
 async function deleteSavedSalary(idx) {
@@ -2688,17 +2759,35 @@ async function deleteSavedSalary(idx) {
 
 function renderBaoCaoHocPhiLop() {
     const lopMa = document.getElementById('bcSelectLop').value;
-    const fromDate = document.getElementById('reportLockFrom').value;
-    const toDate = document.getElementById('reportLockTo').value;
+    const currentLockId = activeLockPeriodId;
+
+    // Lấy danh sách các kỳ khóa và sắp xếp theo thời gian từ cũ đến mới
+    const lockPeriods = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
+    lockPeriods.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+
+    const currentPeriodIndex = lockPeriods.findIndex(p => p.id === currentLockId);
+    let fromDate = null;
+    let toDate = null;
+
+    if (currentPeriodIndex !== -1) {
+        fromDate = lockPeriods[currentPeriodIndex].fromDate;
+        toDate = lockPeriods[currentPeriodIndex].toDate;
+    } else {
+        fromDate = document.getElementById('reportLockFrom').value || null;
+        toDate = document.getElementById('reportLockTo').value || null;
+    }
 
     const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
     const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
     const tkbList = JSON.parse(localStorage.getItem('tkbList')) || [];
     const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
     const thuTienList = JSON.parse(localStorage.getItem('thuTienGiaoDichList')) || [];
+    const bankList = JSON.parse(localStorage.getItem('bankAccounts')) || [];
+
+    // Lấy ngân hàng đầu tiên trong danh sách làm mặc định, hoặc để trống nếu chưa có
+    const defaultBank = bankList.length > 0 ? bankList[0] : { code: 'MBBank', accNo: '0905123456' };
 
     const lop = lopList.find(l => l.ma === lopMa) || { hocPhi: 400000, soBuoi: 12 };
-
     const filteredHS = hsList.filter(h => !lopMa || h.lopMa === lopMa);
     let html = '';
 
@@ -2712,19 +2801,20 @@ function renderBaoCaoHocPhiLop() {
             }
         });
 
-        let daNopTruoc = 0;
-        let phaiThuTruoc = 0;
-        thuTienList.forEach(t => {
-            if (t.hsMa === h.ma) {
-                if (fromDate && t.ngayThu < fromDate) daNopTruoc += Number(t.soTien);
-            }
-        });
+        let soTienChuyenSang = 0;
+        if (currentPeriodIndex > 0) {
+            const prevPeriod = lockPeriods[currentPeriodIndex - 1];
+            let prevDaNop = 0;
+            thuTienList.forEach(t => {
+                if (t.hsMa === h.ma && t.ngayThu >= prevPeriod.fromDate && t.ngayThu <= prevPeriod.toDate) {
+                    prevDaNop += Number(t.soTien);
+                }
+            });
+            const prevPhaiThu = Number(lop.hocPhi);
+            soTienChuyenSang = prevDaNop - prevPhaiThu; 
+        }
 
-        if (fromDate && fromDate > '2026-07-31') phaiThuTruoc = Number(lop.hocPhi);
-
-        let chuyenTuThangTruoc = daNopTruoc - phaiThuTruoc;
-        if (chuyenTuThangTruoc < 0) chuyenTuThangTruoc = 0;
-
+        const phaiThuKyNay = Number(lop.hocPhi);
         let daNopKyNay = 0;
         thuTienList.forEach(t => {
             if (t.hsMa === h.ma) {
@@ -2734,26 +2824,37 @@ function renderBaoCaoHocPhiLop() {
             }
         });
 
-        const phaiThuKyNay = Number(lop.hocPhi);
-        const tongSoTienHienCo = daNopKyNay + chuyenTuThangTruoc;
+        const tongSoTienHienCo = daNopKyNay + soTienChuyenSang;
         const conLai = phaiThuKyNay - tongSoTienHienCo;
 
         let trangThaiStr = '';
         if (conLai < 0) {
-            const duVal = Math.abs(conLai);
-            trangThaiStr = `<span class="badge bg-success">Đã đóng ${phaiThuKyNay.toLocaleString()}đ (Ghi chú: Dư ${duVal.toLocaleString()}đ chuyển tháng sau)</span>`;
+            trangThaiStr = `<span class="badge bg-success">Đã hoàn thành (Dư ${Math.abs(conLai).toLocaleString()}đ)</span>`;
         } else if (conLai === 0) {
             trangThaiStr = `<span class="badge bg-success">Đã hoàn thành</span>`;
         } else {
-            if (chuyenTuThangTruoc > 0) {
-                trangThaiStr = `<span class="badge bg-warning text-dark">Đã nhận ${chuyenTuThangTruoc.toLocaleString()}đ chuyển tháng trước qua (Còn thiếu ${conLai.toLocaleString()}đ)</span>`;
-            } else {
-                trangThaiStr = `<span class="badge bg-danger">Còn thiếu ${conLai.toLocaleString()}đ</span>`;
-            }
+            trangThaiStr = `<span class="badge bg-danger">Còn thiếu ${conLai.toLocaleString()}đ</span>`;
         }
 
         const maPhieuThu = 'PT-' + h.ma;
-        const qrURL = `https://img.vietqr.io/image/MBBank-0905123456-compact2.png?amount=${conLai > 0 ? conLai : 0}&addInfo=${encodeURIComponent(h.ten + ' ' + maPhieuThu)}`;
+        
+        // Tạo danh sách chọn ngân hàng ngay tại dòng của học sinh hoặc dùng ngân hàng mặc định
+        let bankOptionsHtml = '';
+        bankList.forEach((b, bIdx) => {
+            bankOptionsHtml += `<option value="${b.code}_${b.accNo}">${b.code} - ${b.accNo}</option>`;
+        });
+
+const amountToPay = conLai > 0 ? conLai : 0;
+        
+        // Link QR tự động đồng bộ theo Ngân hàng chung phía trên (globalBankSelect)
+        const globalBankVal = document.getElementById('globalBankSelect') ? document.getElementById('globalBankSelect').value : '';
+        let activeBank = bankList.length > 0 ? bankList[0] : { code: 'MBBank', accNo: '0905123456' };
+        if (globalBankVal) {
+            const parts = globalBankVal.split('_');
+            activeBank = { code: parts[0], accNo: parts[1] };
+        }
+
+        const qrURL = `https://img.vietqr.io/image/${activeBank.code}-${activeBank.accNo}-compact2.png?amount=${amountToPay}&addInfo=${encodeURIComponent(h.ten + ' ' + maPhieuThu)}`;
 
         html += `<tr>
             <td>${stt + 1}</td>
@@ -2763,17 +2864,36 @@ function renderBaoCaoHocPhiLop() {
             <td>${lop.soBuoi} buổi</td>
             <td><span class="badge bg-success">${checkedBuoi} buổi</span></td>
             <td>${Number(lop.hocPhi).toLocaleString()} đ</td>
-            <td>0 đ</td>
+            <td>${soTienChuyenSang !== 0 ? soTienChuyenSang.toLocaleString() + ' đ' : '0 đ'}</td>
             <td class="fw-bold">${phaiThuKyNay.toLocaleString()} đ</td>
             <td><span class="fw-bold text-success wiggle-item" onclick="openFormThuTiens('${h.ma}')">${tongSoTienHienCo.toLocaleString()} đ</span></td>
-            <td class="fw-bold text-danger">${(conLai > 0 ? conLai : 0).toLocaleString()} đ</td>
+            <td class="fw-bold text-danger">${amountToPay.toLocaleString()} đ</td>
             <td>${trangThaiStr}</td>
-            <td><a href="${qrURL}" target="_blank" class="btn btn-sm btn-outline-orange"><i class="fa-solid fa-qrcode"></i> Mã QR</a></td>
+            <td>
+                <a href="${qrURL}" target="_blank" class="btn btn-sm btn-outline-orange student-qr-link" data-amount="${amountToPay}" data-name="${h.ten}" data-phieu="${maPhieuThu}">
+                    <i class="fa-solid fa-qrcode"></i> Xem Mã QR
+                </a>
+            </td>
         </tr>`;
-    });
+        });
 
-    document.getElementById('tableHocPhiLopBody').innerHTML = html || `<tr><td colspan="13" class="text-muted">Không có dữ liệu.</td></tr>`;
+    document.getElementById('tableHocPhiLopBody').innerHTML = html || `<tr><td colspan="13" class="text-muted">Không có dữ liệu học sinh trong lớp này.</td></tr>`;
     renderClassSummary();
+}
+
+// Hàm hỗ trợ tự động đổi Link QR khi thay đổi chọn Ngân Hàng
+function updateStudentQR(hsMa, amount, hsName, maPhieu) {
+    const selectEl = document.getElementById(`bankSelect_${hsMa}`);
+    const linkEl = document.getElementById(`qrLink_${hsMa}`);
+    if (!selectEl || !linkEl) return;
+
+    const val = selectEl.value; // Định dạng "BankCode_AccNo"
+    const parts = val.split('_');
+    const bankCode = parts[0];
+    const accNo = parts[1];
+
+    const newQRURL = `https://img.vietqr.io/image/${bankCode}-${accNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(hsName + ' ' + maPhieu)}`;
+    linkEl.href = newQRURL;
 }
 
 function openFormThuTiens(hsMa) {
@@ -3153,7 +3273,94 @@ function downloadPDFFromPreview() {
     };
     html2pdf().set(opt).from(element).save();
 }
+// ================= TÍNH NĂNG TẢI DANH SÁCH HỌC SINH (EXCEL) =================
+function exportExcelTatCaHocSinh() {
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
 
+    if (hsList.length === 0) {
+        alert('Danh sách học sinh đang trống!');
+        return;
+    }
+
+    const dataFormatted = hsList.map((h, index) => {
+        const lop = lopList.find(l => l.ma === h.lopMa) || { ten: 'Chưa xếp lớp' };
+        return {
+            "STT": index + 1,
+            "Mã HS": h.ma,
+            "Họ và Tên": h.ten,
+            "Giới tính": h.gioiTinh || 'Nam',
+            "Ngày sinh": h.ngaySinh || '',
+            "Trường": h.truong || '',
+            "Lớp riêng": h.lopRieng || '',
+            "Lớp Trung Tâm": lop.ten,
+            "Ngày nhập học": h.ngayNhapHoc || '',
+            "Phụ huynh": h.tenPH || '',
+            "Số điện thoại": h.phone || '',
+            "Địa chỉ": h.diaChi || '',
+            "Email Hệ Thống": h.mail || generateSmartEmail(h.ten), // Đã bao gồm Email
+            "Mật Khẩu": h.pass || '123456'                      // Đã bao gồm Mật khẩu
+        };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataFormatted);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "ToanBoHocSinh");
+
+    XLSX.writeFile(workbook, "DanhSachToanBoHocSinh_TrungTam.xlsx");
+    showToast("Đã tải xuống danh sách toàn bộ học sinh thành công!");
+}
+
+function exportExcelHocSinhTheoLop() {
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    if (lopList.length === 0) {
+        alert('Chưa có dữ liệu lớp học nào!');
+        return;
+    }
+
+    let promptMsg = "Nhập mã lớp bạn muốn tải danh sách (Ví dụ: TA001):\n";
+    lopList.forEach(l => {
+        promptMsg += `- ${l.ma}: ${l.ten}\n`;
+    });
+
+    const selectedLopMa = prompt(promptMsg);
+    if (!selectedLopMa) return;
+
+    const lopTarget = lopList.find(l => l.ma.toUpperCase() === selectedLopMa.trim().toUpperCase());
+    if (!lopTarget) {
+        alert('Không tìm thấy mã lớp phù hợp!');
+        return;
+    }
+
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const filteredHS = hsList.filter(h => h.lopMa === lopTarget.ma);
+
+    if (filteredHS.length === 0) {
+        alert(`Lớp [${lopTarget.ten}] hiện không có học sinh nào!`);
+        return;
+    }
+
+    const dataFormatted = filteredHS.map((h, index) => ({
+        "STT": index + 1,
+        "Mã HS": h.ma,
+        "Họ và Tên": h.ten,
+        "Giới tính": h.gioiTinh || 'Nam',
+        "Ngày sinh": h.ngaySinh || '',
+        "Trường": h.truong || '',
+        "Lớp riêng": h.lopRieng || '',
+        "Số điện thoại PH": h.phone || '',
+        "Ngày nhập học": h.ngayNhapHoc || '',
+        "Email Hệ Thống": h.mail || generateSmartEmail(h.ten), // Đã bao gồm Email
+        "Mật Khẩu": h.pass || '123456'                      // Đã bao gồm Mật khẩu
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataFormatted);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "HocSinhTheoLop");
+
+    XLSX.writeFile(workbook, `DanhSachHocSinh_Lop_${lopTarget.ma}.xlsx`);
+    showToast(`Đã tải danh sách lớp ${lopTarget.ten} thành công!`);
+}
 /* ================= INIT ON LOAD ================= */
 document.addEventListener('DOMContentLoaded', async () => {
     await initData();
@@ -3180,6 +3387,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderBaoCaoLoiNhuan();
     }
 });
+function updateAllStudentQR() {
+    const globalBankSelect = document.getElementById('globalBankSelect');
+    if (!globalBankSelect) return;
+
+    const val = globalBankSelect.value;
+    if (!val) return;
+
+    const parts = val.split('_');
+    const bankCode = parts[0];
+    const accNo = parts[1];
+
+    const links = document.querySelectorAll('.student-qr-link');
+    links.forEach(link => {
+        const amount = link.getAttribute('data-amount');
+        const name = link.getAttribute('data-name');
+        const phieu = link.getAttribute('data-phieu');
+
+        const newQRURL = `https://img.vietqr.io/image/${bankCode}-${accNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(name + ' ' + phieu)}`;
+        link.href = newQRURL;
+    });
+}
 </script>
 </body>
 </html>
