@@ -6,7 +6,7 @@
     <title>Góc Học Sinh & Truyện Kể Đa Dạng - GENIUS KIDS L.C</title>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
- import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAUBJuv76X2GbhEGgGUat2O_g9rX5Bb0nA",
@@ -20,15 +20,16 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   
-  // Gắn ra window để các hàm bên dưới gọi được
   window.db = db;
-    window.FirestoreDeps = { doc, getDoc, setDoc };
+  window.FirestoreDeps = { doc, getDoc, setDoc };
   console.log("Firebase đã sẵn sàng kết nối!");
-   async function syncCloudDataToLocal() {
+
+  // Đưa hàm đồng bộ ra window để script thường gọi được
+  window.syncCloudDataToLocal = async function() {
     if (window.db && window.FirestoreDeps) {
         try {
             const { doc, getDoc } = window.FirestoreDeps;
-            const keys = ['hocSinhList', 'giaoVienList', 'lopHocList', 'tkbList', 'diemDanhList', 'phongHocList', 'thuTienGiaoDichList', 'bankAccounts', 'lockPeriodsList'];
+            const keys = ['hocSinhList', 'giaoVienList', 'lopHocList', 'tkbList', 'diemDanhList', 'phongHocList', 'thuTienGiaoDichList', 'bankAccounts', 'lockPeriodsList', 'adminHomeworkList'];
             
             for (let key of keys) {
                 const snap = await getDoc(doc(window.db, "systemData", key));
@@ -41,23 +42,9 @@
             console.error("Lỗi tải dữ liệu từ mây:", e);
         }
     }
-}
-
-window.addEventListener('DOMContentLoaded', async () => {
-    await syncCloudDataToLocal();
-    if (typeof initMyData === 'function') initMyData();
-    if (typeof renderTKBGrid === 'function') renderTKBGrid();
-    if (typeof renderFeeReport === 'function') renderFeeReport();
-    
-    // --- BỔ SUNG DÒNG NÀY ĐỂ TẢI DANH SÁCH BÀI TẬP VỀ NHÀ CHO HỌC SINH ---
-    if (typeof renderStudentHomeworkList === 'function') renderStudentHomeworkList();
-    
-    // Gọi thêm lần nữa để ép vẽ lịch sau khi data đã về máy
-    setTimeout(() => {
-        if (typeof renderTKBGrid === 'function') renderTKBGrid();
-    }, 500);
-});
-</script>    <!-- Google Fonts -->
+  };
+</script>
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -68,6 +55,35 @@ window.addEventListener('DOMContentLoaded', async () => {
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
+      /* Ép toàn bộ khung hiển thị co gọn và căn giữa khi chọn chế độ Điện thoại */
+body.mode-mobile .main-container {
+    max-width: 480px !important;
+    margin: 0 auto !important;
+    padding: 10px !important;
+}
+
+body.mode-mobile .custom-card {
+    padding: 15px !important;
+    width: 100% !important;
+}
+
+body.mode-mobile #studentHomeworkListContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+body.mode-mobile #studentHomeworkListContainer > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding: 0 !important;
+}
+
+body.mode-mobile .game-card {
+    width: 100% !important;
+    margin: 0 !important;
+}
         :root {
             --primary-orange: #ff5e00;
             --bright-orange: #ff7b00;
@@ -150,6 +166,51 @@ window.addEventListener('DOMContentLoaded', async () => {
         .modal-content { border-radius: 22px; border: 3px solid #ff7b00; overflow: hidden; }
         .modal-header { background: var(--gradient-orange); color: white; padding: 18px 24px; border: none; }
         .table-responsive-custom { width: 100%; overflow-x: auto; border-radius: 14px; border: 1px solid #ffe2d4; }
+    /* Tùy chỉnh chế độ xem màn hình */
+body.mode-mobile .main-container {
+    max-width: 480px !important;
+    margin: 0 auto !important;
+    padding: 10px !important;
+    border-left: 4px solid #ff5e00;
+    border-right: 4px solid #ff5e00;
+    background: #fff;
+    box-shadow: 0 0 30px rgba(0,0,0,0.15);
+}
+
+body.mode-mobile .admin-header {
+    border-bottom-left-radius: 15px !important;
+    border-bottom-right-radius: 15px !important;
+    padding: 15px 10px !important;
+}
+
+body.mode-mobile .main-title {
+    font-size: 1.2rem !important;
+}
+/* Giao diện thu gọn khi ở chế độ Điện thoại */
+body.mode-mobile .main-container {
+    max-width: 480px !important;
+    margin: 0 auto !important;
+    padding: 10px !important;
+    background: #fff;
+    box-shadow: 0 0 30px rgba(0,0,0,0.15);
+}
+
+body.mode-mobile .admin-header {
+    border-bottom-left-radius: 15px !important;
+    border-bottom-right-radius: 15px !important;
+    padding: 15px 10px !important;
+}
+
+body.mode-mobile .main-title {
+    font-size: 1.2rem !important;
+}
+
+/* Ép danh sách bài tập về nhà hiển thị theo chiều dọc 1 cột khi ở chế độ di động */
+body.mode-mobile #studentHomeworkListContainer > div {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+}
     </style>
 </head>
 <body>
@@ -181,7 +242,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     </div>
     <div class="main-title">TRUNG TÂM NGOẠI NGỮ THẦN ĐỒNG</div>
 
-    <!-- TABS ĐIỀU HƯỚNG -->
+    <!-- Nút chọn giao diện -->
+    <div class="text-center my-2">
+        <div class="btn-group btn-group-sm shadow-sm" role="group">
+            <button type="button" class="btn btn-light fw-bold text-dark px-3" id="btnModeDesktop" onclick="setScreenMode('desktop')">
+                <i class="fa-solid fa-desktop me-1"></i> Máy tính
+            </button>
+            <button type="button" class="btn btn-light fw-bold text-dark px-3" id="btnModeMobile" onclick="setScreenMode('mobile')">
+                <i class="fa-solid fa-mobile-screen me-1"></i> Điện thoại
+            </button>
+        </div>
+    </div>
+
+    <!-- TABS ĐIỀU HƯỚNG ĐẦY ĐỦ -->
     <ul class="nav nav-tabs nav-tabs-custom" id="mainTab" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#hoso-sec" type="button"><i class="fa-solid fa-user-graduate me-2"></i>HỒ SƠ CỦA EM</button>
@@ -199,13 +272,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#hocphi-sec" type="button"><i class="fa-solid fa-receipt me-2"></i>BÁO CÁO HỌC PHÍ</button>
         </li>
         <li class="nav-item">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#baitap-sec" type="button">
-        <i class="fa-solid fa-file-pen me-2"></i>BÀI TẬP VỀ NHÀ
-    </button>
-</li>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#baitap-sec" type="button"><i class="fa-solid fa-file-pen me-2"></i>BÀI TẬP VỀ NHÀ</button>
+        </li>
     </ul>
 </header>
-
 <main class="main-container">
     <div class="tab-content">
         
@@ -1324,7 +1394,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof renderStudentHomeworkList === 'function') renderStudentHomeworkList();
 });
 /* ================= HỆ THỐNG LÀM BÀI TẬP VỀ NHÀ (HỌC SINH) ================= */
-
 function renderStudentHomeworkList() {
     const allHomework = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
 
@@ -1333,7 +1402,6 @@ function renderStudentHomeworkList() {
         html = '<div class="col-12 text-muted text-center py-4">Hiện tại chưa có bài tập về nhà nào được giao.</div>';
     } else {
         allHomework.forEach(hw => {
-            // Kiểm tra nếu bài tập gán riêng lớp thì học sinh lớp đó mới thấy (hoặc gán ALL)
             if (hw.targetClass && hw.targetClass !== 'ALL' && myInfo.lopMa !== hw.targetClass) return;
 
             const historyKey = `hw_history_${myInfo.ma}_${hw.id}`;
@@ -1341,8 +1409,8 @@ function renderStudentHomeworkList() {
             const lastScore = myHistory.length > 0 ? myHistory[myHistory.length - 1].score : 'Chưa làm';
 
             html += `
-            <div class="col-md-6">
-                <div class="game-card border-primary p-4 shadow-sm rounded-4 bg-white">
+            <div class="col-12 col-md-6 mb-3">
+                <div class="game-card border-primary p-4 shadow-sm rounded-4 bg-white w-100">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge bg-warning text-dark"><i class="fa-solid fa-book me-1"></i> Trắc nghiệm tương tác</span>
                         <span class="badge bg-info text-dark">Lớp: ${hw.targetClass || 'Tất cả'}</span>
@@ -1687,7 +1755,37 @@ function renderAdminHomeworkTable() {
     const tbody = document.getElementById('adminHomeworkTableBody');
     if (tbody) tbody.innerHTML = html || `<tr><td colspan="5" class="text-muted">Chưa có bài tập nào được tạo.</td></tr>`;
 }
+/* ================= CHUYỂN ĐỔI GIAO DIỆN MÁY TÍNH / ĐIỆN THOẠI ================= */
 
+function setScreenMode(mode) {
+    const body = document.body;
+    const btnDesktop = document.getElementById('btnModeDesktop');
+    const btnMobile = document.getElementById('btnModeMobile');
+
+    if (mode === 'mobile') {
+        body.classList.add('mode-mobile');
+        btnMobile.classList.remove('btn-light', 'text-dark');
+        btnMobile.classList.add('btn-warning', 'text-dark');
+        btnDesktop.classList.remove('btn-warning', 'text-dark');
+        btnDesktop.classList.add('btn-light', 'text-dark');
+        localStorage.setItem('student_screen_mode', 'mobile');
+        showToast('Đã chuyển sang giao diện Điện thoại!');
+    } else {
+        body.classList.remove('mode-mobile');
+        btnDesktop.classList.remove('btn-light', 'text-dark');
+        btnDesktop.classList.add('btn-warning', 'text-dark');
+        btnMobile.classList.remove('btn-warning', 'text-dark');
+        btnMobile.classList.add('btn-light', 'text-dark');
+        localStorage.setItem('student_screen_mode', 'desktop');
+        showToast('Đã chuyển sang giao diện Máy tính!');
+    }
+}
+
+// Tự động khôi phục chế độ xem lần trước học sinh đã chọn khi tải lại trang
+document.addEventListener('DOMContentLoaded', () => {
+    const savedMode = localStorage.getItem('student_screen_mode') || 'desktop';
+    setScreenMode(savedMode);
+});
 </script>
 <div class="modal fade" id="modalEditHomework" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
