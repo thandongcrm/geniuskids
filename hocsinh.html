@@ -49,6 +49,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (typeof renderTKBGrid === 'function') renderTKBGrid();
     if (typeof renderFeeReport === 'function') renderFeeReport();
     
+    // --- BỔ SUNG DÒNG NÀY ĐỂ TẢI DANH SÁCH BÀI TẬP VỀ NHÀ CHO HỌC SINH ---
+    if (typeof renderStudentHomeworkList === 'function') renderStudentHomeworkList();
+    
     // Gọi thêm lần nữa để ép vẽ lịch sau khi data đã về máy
     setTimeout(() => {
         if (typeof renderTKBGrid === 'function') renderTKBGrid();
@@ -195,6 +198,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#hocphi-sec" type="button"><i class="fa-solid fa-receipt me-2"></i>BÁO CÁO HỌC PHÍ</button>
         </li>
+        <li class="nav-item">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#baitap-sec" type="button">
+        <i class="fa-solid fa-file-pen me-2"></i>BÀI TẬP VỀ NHÀ
+    </button>
+</li>
     </ul>
 </header>
 
@@ -328,12 +336,51 @@ window.addEventListener('DOMContentLoaded', async () => {
             </div>
         </div>
 
-        <!-- ================= TAB 4: NHẬT KÝ CHUYÊN CẦN ================= -->
+     <!-- ================= TAB 4: NHẬT KÝ CHUYÊN CẦN ================= -->
         <div class="tab-pane fade" id="diemdanh-sec">
             <div class="custom-card">
-                <div class="card-header-title"><i class="fa-solid fa-clipboard-user fa-lg"></i> DANH SÁCH NHẬT KÝ ĐIỂM DANH HỌC TẬP</div>
-                <p class="text-muted small">Dưới đây là chi tiết từng ngày học và kết quả điểm danh của giáo viên dành cho em:</p>
+                <div class="card-header-title d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-clipboard-user fa-lg"></i> DANH SÁCH NHẬT KÝ ĐIỂM DANH HỌC TẬP</span>
+                    <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow-sm" id="totalBuoiHocBadge">
+                        <i class="fa-solid fa-calendar-check me-1"></i> Tổng số buổi: 0 buổi
+                    </span>
+                </div>
                 
+                <!-- BỘ LỌC THÁNG VÀ NĂM -->
+                <div class="row g-3 align-items-end mb-4 p-3 bg-light rounded-4 border">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small text-orange"><i class="fa-solid fa-calendar-days me-1"></i> Chọn Tháng:</label>
+                        <select class="form-select shadow-sm" id="filterNhatKyMonth" onchange="renderAttendanceHistory()">
+                            <option value="ALL">Tất cả các tháng</option>
+                            <option value="1">Tháng 1</option>
+                            <option value="2">Tháng 2</option>
+                            <option value="3">Tháng 3</option>
+                            <option value="4">Tháng 4</option>
+                            <option value="5">Tháng 5</option>
+                            <option value="6">Tháng 6</option>
+                            <option value="7">Tháng 7</option>
+                            <option value="8">Tháng 8</option>
+                            <option value="9">Tháng 9</option>
+                            <option value="10">Tháng 10</option>
+                            <option value="11">Tháng 11</option>
+                            <option value="12">Tháng 12</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small text-orange"><i class="fa-solid fa-calendar me-1"></i> Chọn Năm:</label>
+                        <select class="form-select shadow-sm" id="filterNhatKyYear" onchange="renderAttendanceHistory()">
+                            <option value="2025">Năm 2025</option>
+                            <option value="2026" selected>Năm 2026</option>
+                            <option value="2027">Năm 2027</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-orange fw-bold w-100" onclick="resetNhatKyFilterToCurrent()">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i> Về tháng hiện tại
+                        </button>
+                    </div>
+                </div>
+
                 <div class="table-responsive-custom">
                     <table class="table table-hover table-bordered text-center align-middle mb-0">
                         <thead class="table-warning">
@@ -351,7 +398,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 </div>
             </div>
         </div>
-
         <!-- ================= TAB 5: BÁO CÁO HỌC PHÍ & VIETQR ================= -->
         <div class="tab-pane fade" id="hocphi-sec">
             <div class="custom-card mb-4">
@@ -428,7 +474,20 @@ window.addEventListener('DOMContentLoaded', async () => {
         </div>
     </div>
 </div>
-
+<!-- ================= TAB: BÀI TẬP VỀ NHÀ TRẮC NGHIỆM ================= -->
+<div class="tab-pane fade" id="baitap-sec">
+    <div class="custom-card">
+        <div class="card-header-title d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-laptop-file fa-lg"></i> DANH SÁCH BÀI TẬP VỀ NHÀ TRẮC NGHIỆM</span>
+            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill shadow-sm">
+                <i class="fa-solid fa-circle-info me-1"></i> Làm bài tùy thích & xem lại kết quả
+            </span>
+        </div>
+        <div class="row g-3" id="studentHomeworkListContainer">
+            <!-- Danh sách bài tập sẽ được render tự động ở đây -->
+        </div>
+    </div>
+</div>
 <!-- MODAL: ĐỌC TRUYỆN & CÂU HỎI (TÍCH HỢP GIỌNG ĐỌC TRẺ EM) -->
 <div class="modal fade" id="modalStoryGame" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -502,7 +561,28 @@ window.addEventListener('DOMContentLoaded', async () => {
         </div>
     </div>
 </div>
-
+<!-- MODAL: LÀM BÀI TẬP TRẮC NGHIỆM & XEM KẾT QUẢ -->
+<div class="modal fade" id="modalDoHomework" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="hwModalTitle"><i class="fa-solid fa-pen-to-square me-2"></i>Làm Bài Tập Trắc Nghiệm</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="hwQuestionsContainer"></div>
+                <div class="text-center mt-4">
+                    <button class="btn btn-green px-5 py-2 fw-bold fs-5 shadow-sm" onclick="submitStudentHomework()">
+                        <i class="fa-solid fa-paper-plane me-2"></i> Nộp Bài & Xem Kết Quả
+                    </button>
+                </div>
+                <div class="mt-4 pt-3 border-top" id="hwResultHistoryContainer">
+                    <!-- Lịch sử làm bài và kết quả các lần trước sẽ hiện ở đây -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 /* ================= HỆ THỐNG DỮ LIỆU & BẢO MẬT ================= */
@@ -1088,26 +1168,73 @@ function renderTKBGrid() {
     document.getElementById('tkbGridBody').innerHTML = gridHtml;
 }
 
-/* ================= TAB 4: NHẬT KÝ CHUYÊN CẦN ================= */
+/* ================= TAB 4: NHẬT KÝ CHUYÊN CẦN & BỘ LỌC THÁNG/NĂM ================= */
+
+// Khởi tạo giá trị mặc định theo tháng/năm hiện tại khi tải trang
+function initNhatKyFilterDefault() {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // Tháng hiện tại (1-12)
+    const currentYear = now.getFullYear();   // Năm hiện tại (VD: 2026)
+
+    const monthEl = document.getElementById('filterNhatKyMonth');
+    const yearEl = document.getElementById('filterNhatKyYear');
+
+    if (monthEl) monthEl.value = currentMonth;
+    if (yearEl) yearEl.value = currentYear;
+}
+
+// Nút quay lại tháng hiện tại nhanh chóng
+function resetNhatKyFilterToCurrent() {
+    initNhatKyFilterDefault();
+    renderAttendanceHistory();
+    showToast('Đã chuyển về tháng hiện tại!');
+}
+
 function renderAttendanceHistory() {
+    if (!myInfo) return;
+
     const allTkb = JSON.parse(localStorage.getItem('tkbList')) || [];
     const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
     const allPhong = JSON.parse(localStorage.getItem('phongHocList')) || [];
     const allGV = JSON.parse(localStorage.getItem('giaoVienList')) || [];
     const diemDanhList = JSON.parse(localStorage.getItem('diemDanhList')) || [];
 
-    const classTkb = allTkb.filter(t => t.lopMa === myInfo.lopMa).sort((a,b) => (a.ngay < b.ngay) ? 1 : -1);
+    // Lấy giá trị lọc từ dropdown
+    const selectedMonth = document.getElementById('filterNhatKyMonth').value;
+    const selectedYear = document.getElementById('filterNhatKyYear').value;
+
+    // Lọc TKB theo lớp của học sinh
+    const classTkb = allTkb.filter(t => t.lopMa === myInfo.lopMa);
+
+    // Lọc tiếp theo tháng và năm đã chọn
+    const filteredTkb = classTkb.filter(t => {
+        if (!t.ngay) return false;
+        const dateObj = new Date(t.ngay);
+        const itemMonth = dateObj.getMonth() + 1;
+        const itemYear = dateObj.getFullYear();
+
+        const matchMonth = (selectedMonth === 'ALL' || itemMonth == selectedMonth);
+        const matchYear = (selectedYear === 'ALL' || itemYear == selectedYear);
+
+        return matchMonth && matchYear;
+    }).sort((a, b) => (a.ngay < b.ngay) ? 1 : -1);
 
     let html = '';
-    if(classTkb.length === 0) {
-        html = '<tr><td colspan="6" class="text-muted">Chưa có dữ liệu nhật ký học tập.</td></tr>';
+    let totalAttendedCount = 0; // Biến đếm tổng số buổi có mặt trong tháng
+
+    if (filteredTkb.length === 0) {
+        html = `<tr><td colspan="6" class="text-muted py-4">Không có lịch học nào trong tháng ${selectedMonth === 'ALL' ? 'này' : selectedMonth + '/' + selectedYear}.</td></tr>`;
     } else {
-        classTkb.forEach(t => {
+        filteredTkb.forEach(t => {
             const lop = allLop.find(l => l.ma === t.lopMa) || { ten: 'Lớp' };
             const phong = allPhong.find(p => p.ma === t.phongMa) || { ten: 'Phòng' };
             const gv = allGV.find(g => g.ma === t.gvMa) || { ten: 'Giáo viên' };
 
             const isAttended = diemDanhList.includes(`${t.id}_${myInfo.ma}`);
+            if (isAttended) {
+                totalAttendedCount++; // Tăng số buổi có mặt nếu học sinh đi học đầy đủ
+            }
+
             const statusBadge = isAttended 
                 ? `<span class="badge bg-success fs-6"><i class="fa-solid fa-check me-1"></i> CÓ MẶT</span>` 
                 : `<span class="badge bg-secondary fs-6"><i class="fa-solid fa-clock me-1"></i> CHƯA ĐIỂM DANH / VẮNG</span>`;
@@ -1123,9 +1250,12 @@ function renderAttendanceHistory() {
         });
     }
 
+    // Hiển thị tổng số buổi có mặt ra Badge phía trên
+    const timeLabel = selectedMonth === 'ALL' ? `Năm ${selectedYear}` : `Tháng ${selectedMonth}/${selectedYear}`;
+    document.getElementById('totalBuoiHocBadge').innerHTML = `<i class="fa-solid fa-calendar-check me-1"></i> Đã học ${totalAttendedCount} buổi (${timeLabel})`;
+
     document.getElementById('attendanceHistoryBody').innerHTML = html;
 }
-
 /* ================= TAB 5: BÁO CÁO HỌC PHÍ & VIETQR ================= */
 function renderFeeReport() {
     const allLop = JSON.parse(localStorage.getItem('lopHocList')) || [];
@@ -1180,13 +1310,419 @@ function renderFeeReport() {
 }
 
 /* ================= INIT ON LOAD ================= */
-document.addEventListener('DOMContentLoaded', () => {
-    initMyData();
-    initDateTimeSelects();
-    renderTKBGrid();
-    renderAttendanceHistory();
-    renderFeeReport();
+document.addEventListener('DOMContentLoaded', async () => {
+    await syncCloudDataToLocal();
+    if (typeof initMyData === 'function') initMyData();
+    
+    // Khởi tạo bộ lọc tháng/năm hiện tại trước khi vẽ nhật ký
+    if (typeof initNhatKyFilterDefault === 'function') initNhatKyFilterDefault();
+
+    if (typeof initDateTimeSelects === 'function') initDateTimeSelects();
+    if (typeof renderTKBGrid === 'function') renderTKBGrid();
+    if (typeof renderAttendanceHistory === 'function') renderAttendanceHistory();
+    if (typeof renderFeeReport === 'function') renderFeeReport();
+    if (typeof renderStudentHomeworkList === 'function') renderStudentHomeworkList();
 });
+/* ================= HỆ THỐNG LÀM BÀI TẬP VỀ NHÀ (HỌC SINH) ================= */
+
+function renderStudentHomeworkList() {
+    const allHomework = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+
+    let html = '';
+    if (allHomework.length === 0) {
+        html = '<div class="col-12 text-muted text-center py-4">Hiện tại chưa có bài tập về nhà nào được giao.</div>';
+    } else {
+        allHomework.forEach(hw => {
+            // Kiểm tra nếu bài tập gán riêng lớp thì học sinh lớp đó mới thấy (hoặc gán ALL)
+            if (hw.targetClass && hw.targetClass !== 'ALL' && myInfo.lopMa !== hw.targetClass) return;
+
+            const historyKey = `hw_history_${myInfo.ma}_${hw.id}`;
+            const myHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
+            const lastScore = myHistory.length > 0 ? myHistory[myHistory.length - 1].score : 'Chưa làm';
+
+            html += `
+            <div class="col-md-6">
+                <div class="game-card border-primary p-4 shadow-sm rounded-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-book me-1"></i> Trắc nghiệm tương tác</span>
+                        <span class="badge bg-info text-dark">Lớp: ${hw.targetClass || 'Tất cả'}</span>
+                    </div>
+                    <h5 class="fw-bold text-primary mb-1">${hw.title}</h5>
+                    <p class="small text-muted mb-3">${hw.desc || 'Không có mô tả'}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3 text-secondary small">
+                        <span><i class="fa-solid fa-list-check me-1"></i> Số câu: <b>${hw.questions.length}</b></span>
+                        <span><i class="fa-solid fa-clock-rotate-left me-1"></i> Lần gần nhất: <b class="text-success">${lastScore}</b></span>
+                    </div>
+                    <button class="btn btn-orange w-100 fw-bold py-2 shadow-sm" onclick="openDoHomeworkModal('${hw.id}')">
+                        <i class="fa-solid fa-pen-nib me-1"></i> Vào làm bài ngay (${myHistory.length} lần đã nộp)
+                    </button>
+                </div>
+            </div>`;
+        });
+    }
+    document.getElementById('studentHomeworkListContainer').innerHTML = html || '<div class="col-12 text-muted text-center py-4">Không có bài tập nào dành riêng cho lớp của bạn.</div>';
+}
+
+function openDoHomeworkModal(hwId) {
+    activeHomeworkId = hwId;
+    const allHomework = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const hw = allHomework.find(item => item.id === hwId);
+    if (!hw) return;
+
+    document.getElementById('hwModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square me-2"></i>${hw.title}`;
+
+    let qHtml = '';
+    hw.questions.forEach((item, qIdx) => {
+        let mediaHtml = '';
+        if (item.media) {
+            if (item.media.startsWith('data:image') || item.media.startsWith('http')) {
+                mediaHtml = `<div class="mb-3 text-center"><img src="${item.media}" class="img-fluid rounded-4 shadow-sm border" style="max-height: 200px; object-fit: contain;"></div>`;
+            } else if (item.media.startsWith('data:audio') || item.media.includes('audio')) {
+                mediaHtml = `<div class="mb-3 text-center"><audio controls src="${item.media}" class="w-100 shadow-sm rounded"></audio></div>`;
+            }
+        }
+
+        let optionsGridHtml = `<div class="row g-3 mt-2">`;
+        item.options.forEach((opt, optIdx) => {
+            const labelLetter = String.fromCharCode(65 + optIdx);
+            let optContent = '';
+
+            // Bóc tách chính xác text và media từ cấu trúc đối tượng
+            let optText = '';
+            let optMedia = '';
+
+            if (typeof opt === 'object' && opt !== null) {
+                optText = opt.text || '';
+                optMedia = opt.media || '';
+            } else if (typeof opt === 'string') {
+                if (opt.startsWith('data:image') || opt.startsWith('http') || opt.startsWith('data:audio')) {
+                    optMedia = opt;
+                } else {
+                    optText = opt;
+                }
+            }
+
+            if (optText) {
+                optContent += `<div class="fw-bold text-dark fs-6 mb-1">${optText}</div>`;
+            }
+            if (optMedia) {
+                if (optMedia.startsWith('data:image') || optMedia.startsWith('http')) {
+                    optContent += `<img src="${optMedia}" class="img-fluid rounded border mt-1" style="height: 110px; width: 100%; object-fit: contain;">`;
+                } else if (optMedia.startsWith('data:audio') || optMedia.includes('audio')) {
+                    optContent += `<audio controls src="${optMedia}" class="w-100 mt-1" style="height: 35px;"></audio>`;
+                }
+            }
+
+            if (!optText && !optMedia) {
+                optContent = `<div class="text-muted">Đáp án ${labelLetter}</div>`;
+            }
+
+            optionsGridHtml += `
+                <div class="col-6">
+                    <div class="p-3 border rounded-4 option-box text-center shadow-sm bg-white" onclick="selectStudentOption(${qIdx}, ${optIdx})" id="q_${qIdx}_opt_${optIdx}" style="cursor: pointer; transition: all 0.2s; border: 2px solid #ffe2d4 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-warning text-dark px-2 py-1 fw-bold rounded-pill">Đáp án ${labelLetter}</span>
+                            <span class="radio-indicator"><i class="fa-regular fa-circle text-muted"></i></span>
+                        </div>
+                        ${optContent}
+                    </div>
+                </div>`;
+        });
+        optionsGridHtml += `</div>`;
+
+        qHtml += `
+        <div class="mb-4 p-4 bg-light rounded-4 border shadow-sm">
+            <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-primary fs-6 me-2">Câu ${qIdx + 1}</span>
+                <h5 class="fw-bold text-dark m-0">${item.q || ''}</h5>
+            </div>
+            ${mediaHtml}
+            ${optionsGridHtml}
+        </div>`;
+    });
+
+    document.getElementById('hwQuestionsContainer').innerHTML = qHtml;
+    window.studentDoingAnswers = {};
+    renderHomeworkHistory(hwId);
+    openModal('modalDoHomework');
+}
+// Hỗ trợ tự đọc văn bản câu hỏi nếu không có file audio tải lên
+function speakQuestionText(text) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US'; // Hoặc vi-VN tùy nội dung
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+}
+
+function selectStudentOption(qIdx, optIdx) {
+    // Xóa trạng thái chọn trước đó trong cùng câu hỏi
+    document.querySelectorAll(`[id^="q_${qIdx}_opt_"]`).forEach(el => {
+        el.classList.remove('border-primary', 'bg-white', 'shadow');
+        el.style.borderColor = '#ffe2d4';
+        const indicator = el.querySelector('.radio-indicator');
+        if (indicator) indicator.innerHTML = `<i class="fa-regular fa-circle text-muted"></i>`;
+    });
+    
+    // Đánh dấu ô đang được chọn
+    const selectedEl = document.getElementById(`q_${qIdx}_opt_${optIdx}`);
+    selectedEl.classList.add('border-primary', 'bg-white', 'shadow');
+    selectedEl.style.borderColor = '#ff5e00';
+    const indicator = selectedEl.querySelector('.radio-indicator');
+    if (indicator) indicator.innerHTML = `<i class="fa-solid fa-circle-check text-success fs-5"></i>`;
+    
+    window.studentDoingAnswers = window.studentDoingAnswers || {};
+    window.studentDoingAnswers[qIdx] = optIdx;
+}
+
+function submitStudentHomework() {
+    const allHomework = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const hw = allHomework.find(item => item.id === activeHomeworkId);
+    if (!hw) return;
+
+    let correctCount = 0;
+    hw.questions.forEach((item, qIdx) => {
+        const chosenOpt = window.studentDoingAnswers[qIdx];
+        if (chosenOpt !== undefined && chosenOpt === item.correct) {
+            correctCount++;
+        }
+    });
+
+    const score = `${correctCount}/${hw.questions.length} câu đúng`;
+    const timeNow = new Date().toLocaleString();
+
+    const historyKey = `hw_history_${myInfo.ma}_${hw.id}`;
+    let myHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
+    myHistory.push({ time: timeNow, score: score, correct: correctCount, total: hw.questions.length });
+    localStorage.setItem(historyKey, JSON.stringify(myHistory));
+
+    // Hiệu ứng pháo hoa chúc mừng
+    confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+
+    // Động viên khích lệ học sinh dựa trên số điểm đạt được
+    let encouragementMsg = "Tuyệt vời! Em làm bài rất xuất sắc!";
+    if (correctCount === 0) {
+        encouragementMsg = "Không sao cả! Em hãy cố gắng đọc kỹ lại và thử làm lại lần nữa nhé!";
+    } else if (correctCount < hw.questions.length) {
+        encouragementMsg = "Làm tốt lắm! Em có thể làm lại lần nữa để đạt điểm tuyệt đối nhé!";
+    }
+
+    showToast(`Nộp bài thành công! Đạt ${score}. ${encouragementMsg}`);
+    renderHomeworkHistory(hw.id);
+    renderStudentHomeworkList();
+}
+
+function renderHomeworkHistory(hwId) {
+    const historyKey = `hw_history_${myInfo.ma}_${hwId}`;
+    const myHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
+
+    let histHtml = `<h6 class="fw-bold text-orange mb-2"><i class="fa-solid fa-clock-rotate-left me-2"></i> Lịch sử làm bài của bạn:</h6>`;
+    if (myHistory.length === 0) {
+        histHtml += `<p class="text-muted small">Bạn chưa nộp bài lần nào. Hãy hoàn thành và nộp bài nhé!</p>`;
+    } else {
+        histHtml += `<ul class="list-group small">`;
+        myHistory.forEach((h, idx) => {
+            histHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><strong>Lần ${idx + 1}:</strong> Nộp lúc ${h.time}</span>
+                <span class="badge bg-success fs-6">${h.score}</span>
+            </li>`;
+        });
+        histHtml += `</ul>`;
+    }
+    document.getElementById('hwResultHistoryContainer').innerHTML = histHtml;
+}
+
+function openDoHomeworkModal(hwId) {
+    activeHomeworkId = hwId;
+    const allHomework = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const hw = allHomework.find(item => item.id === hwId);
+    if (!hw) return;
+
+    document.getElementById('hwModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square me-2"></i>${hw.title}`;
+
+    let qHtml = '';
+    hw.questions.forEach((item, qIdx) => {
+        let mediaHtml = '';
+        if (item.media) {
+            if (item.media.startsWith('data:image') || item.media.startsWith('http')) {
+                mediaHtml = `<div class="mb-3 text-center"><img src="${item.media}" class="img-fluid rounded-4 shadow-sm border" style="max-height: 200px; object-fit: contain;"></div>`;
+            } else if (item.media.startsWith('data:audio') || item.media.includes('audio')) {
+                mediaHtml = `<div class="mb-3 text-center"><audio controls src="${item.media}" class="w-100 shadow-sm rounded"></audio></div>`;
+            }
+        }
+
+        let optionsGridHtml = `<div class="row g-3 mt-2">`;
+        item.options.forEach((opt, optIdx) => {
+            const labelLetter = String.fromCharCode(65 + optIdx);
+            let optContent = '';
+
+            // Lấy chính xác giá trị text và media từ cấu trúc đối tượng của Admin
+            let optText = '';
+            let optMedia = '';
+
+            if (opt !== null && typeof opt === 'object') {
+                optText = opt.text || '';
+                optMedia = opt.media || '';
+            } else if (typeof opt === 'string') {
+                optText = opt;
+            }
+
+            if (optText) {
+                optContent += `<div class="fw-bold text-dark fs-6 mb-1">${optText}</div>`;
+            }
+            if (optMedia) {
+                if (optMedia.startsWith('data:image') || optMedia.startsWith('http')) {
+                    optContent += `<img src="${optMedia}" class="img-fluid rounded border mt-1" style="height: 110px; width: 100%; object-fit: contain;">`;
+                } else if (optMedia.startsWith('data:audio') || optMedia.includes('audio')) {
+                    optContent += `<audio controls src="${optMedia}" class="w-100 mt-1" style="height: 35px;"></audio>`;
+                }
+            }
+
+            if (!optText && !optMedia) {
+                optContent = `<div class="text-muted">Đáp án ${labelLetter}</div>`;
+            }
+
+            optionsGridHtml += `
+                <div class="col-6">
+                    <div class="p-3 border rounded-4 option-box text-center shadow-sm bg-white" onclick="selectStudentOption(${qIdx}, ${optIdx})" id="q_${qIdx}_opt_${optIdx}" style="cursor: pointer; transition: all 0.2s; border: 2px solid #ffe2d4 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-warning text-dark px-2 py-1 fw-bold rounded-pill">Đáp án ${labelLetter}</span>
+                            <span class="radio-indicator"><i class="fa-regular fa-circle text-muted"></i></span>
+                        </div>
+                        ${optContent}
+                    </div>
+                </div>`;
+        });
+        optionsGridHtml += `</div>`;
+
+        qHtml += `
+        <div class="mb-4 p-4 bg-light rounded-4 border shadow-sm">
+            <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-primary fs-6 me-2">Câu ${qIdx + 1}</span>
+                <h5 class="fw-bold text-dark m-0">${item.q || ''}</h5>
+            </div>
+            ${mediaHtml}
+            ${optionsGridHtml}
+        </div>`;
+    });
+
+    document.getElementById('hwQuestionsContainer').innerHTML = qHtml;
+    window.studentDoingAnswers = {};
+    renderHomeworkHistory(hwId);
+    openModal('modalDoHomework');
+}
+
+function submitStudentHomework() {
+    const allHomework = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const hw = allHomework.find(item => item.id === activeHomeworkId);
+    if (!hw) return;
+
+    let correctCount = 0;
+    hw.questions.forEach((item, qIdx) => {
+        const chosenOpt = window.studentDoingAnswers[qIdx];
+        // Ép kiểu số nguyên để so sánh chuẩn xác với đáp án đúng của admin
+        if (chosenOpt !== undefined && parseInt(chosenOpt) === parseInt(item.correct)) {
+            correctCount++;
+        }
+    });
+
+    const score = `${correctCount}/${hw.questions.length} câu đúng`;
+    const timeNow = new Date().toLocaleString();
+
+    const historyKey = `hw_history_${myInfo.ma}_${hw.id}`;
+    let myHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
+    myHistory.push({ time: timeNow, score: score, correct: correctCount, total: hw.questions.length });
+    localStorage.setItem(historyKey, JSON.stringify(myHistory));
+
+    if (correctCount > 0) {
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+    }
+
+    showToast(`Nộp bài thành công! Bạn đạt ${score}`);
+    renderHomeworkHistory(hw.id);
+    renderStudentHomeworkList();
+}
+
+function renderHomeworkHistory(hwId) {
+    const historyKey = `hw_history_${myInfo.ma}_${hwId}`;
+    const myHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
+
+    let histHtml = `<h6 class="fw-bold text-orange mb-2"><i class="fa-solid fa-clock-rotate-left me-2"></i> Lịch sử làm bài của bạn:</h6>`;
+    if (myHistory.length === 0) {
+        histHtml += `<p class="text-muted small">Bạn chưa làm bài tập này lần nào. Hãy làm và nộp bài nhé!</p>`;
+    } else {
+        histHtml += `<ul class="list-group small">`;
+        myHistory.forEach((h, idx) => {
+            histHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><strong>Lần ${idx + 1}:</strong> Nộp lúc ${h.time}</span>
+                <span class="badge bg-success fs-6">${h.score}</span>
+            </li>`;
+        });
+        histHtml += `</ul>`;
+    }
+    document.getElementById('hwResultHistoryContainer').innerHTML = histHtml;
+}
+function renderAdminHomeworkTable() {
+    const hwList = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    let html = '';
+    
+    hwList.forEach((hw, idx) => {
+        const lop = lopList.find(l => l.ma === hw.targetClass);
+        const className = lop ? lop.ten : 'Tất cả các lớp';
+
+        html += `<tr>
+            <td>${hw.id}</td>
+            <td class="fw-bold text-primary">${hw.title}</td>
+            <td>${hw.questions.length} câu</td>
+            <td><span class="badge bg-info text-dark">${className}</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditHomeworkModal('${hw.id}')"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                <button class="btn btn-sm btn-outline-success me-1" onclick="openAdminViewResult('${hw.id}')"><i class="fa-solid fa-eye"></i> Kết quả</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteHomework(${idx})"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`;
+    });
+    const tbody = document.getElementById('adminHomeworkTableBody');
+    if (tbody) tbody.innerHTML = html || `<tr><td colspan="5" class="text-muted">Chưa có bài tập nào được tạo.</td></tr>`;
+}
+
 </script>
+<div class="modal fade" id="modalEditHomework" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Bài Tập Về Nhà</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="editHwId">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tiêu đề bài tập:</label>
+                        <input type="text" class="form-control" id="editHwTitle">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Giao cho lớp:</label>
+                        <select class="form-select border-primary fw-bold" id="editHwTargetClass"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Mô tả ngắn:</label>
+                        <input type="text" class="form-control" id="editHwDesc">
+                    </div>
+                </div>
+
+                <hr>
+                <h6 class="fw-bold text-orange mb-3">Danh sách câu hỏi:</h6>
+                <div id="editQList" style="max-height: 50vh; overflow-y: auto; padding-right: 5px;"></div>
+
+                <div class="text-center mt-4 border-top pt-3">
+                    <button type="button" class="btn btn-orange px-5 py-2 fw-bold" onclick="updateHomework()">Cập Nhật Thay Đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
