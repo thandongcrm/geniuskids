@@ -305,6 +305,7 @@
                 <i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất
             </button>
         </div>
+        
     </div>
 
     <!-- TÊN GỌI CHÍNH THỨC -->
@@ -336,6 +337,12 @@
                 <i class="fa-solid fa-chart-pie me-2"></i>BÁO CÁO VÀ LỢI NHUẬN
             </button>
         </li>
+        <li class="nav-item">
+    <button class="nav-link" id="baitap-admin-tab" data-bs-toggle="tab" data-bs-target="#baitap-admin-sec" type="button">
+        <i class="fa-solid fa-file-pen me-2"></i>QUẢN LÝ BÀI TẬP
+    </button>
+</li>
+
     </ul>
 </header>
 
@@ -758,7 +765,22 @@
 
     </div>
 </main>
-
+<div class="tab-pane fade" id="baitap-admin-sec" role="tabpanel">
+    <div class="custom-card">
+        <div class="card-header-title d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-list-check me-2"></i> QUẢN LÝ BÀI TẬP VỀ NHÀ TRẮC NGHIỆM</span>
+            <button class="btn btn-orange" onclick="openAddHomeworkModal()">+ Thêm Bài Tập Mới</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered text-center align-middle">
+                <thead class="table-warning">
+                    <tr><th>Mã BT</th><th>Tiêu đề</th><th>Số câu hỏi</th><th>Đối tượng</th><th>Thao tác</th></tr>
+                </thead>
+                <tbody id="adminHomeworkTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 <!-- ================= ALL SYSTEM MODALS ================= -->
 
 <!-- Modal 1. Thêm/Sửa Phòng Học -->
@@ -3375,6 +3397,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     renderTKB();
     renderLockPeriods();
+    
+    // --- BỔ SUNG DÒNG NÀY ĐỂ TẢI LẠI BÀI TẬP KHI RELOAD ---
+    renderAdminHomeworkTable(); 
 
     const lockList = JSON.parse(localStorage.getItem('lockPeriodsList')) || [];
     if (lockList.length > 0) {
@@ -3408,6 +3433,455 @@ function updateAllStudentQR() {
         link.href = newQRURL;
     });
 }
+/* ================= HỆ THỐNG QUẢN LÝ BÀI TẬP (ADMIN - HOÀN CHỈNH) ================= */
+
+function openAddHomeworkModal() {
+    document.getElementById('hwTitle').value = '';
+    document.getElementById('hwDesc').value = '';
+    document.getElementById('qList').innerHTML = '';
+    
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    let classOpts = '<option value="ALL">--- TẤT CẢ CÁC LỚP ---</option>';
+    lopList.forEach(l => {
+        classOpts += `<option value="${l.ma}">${l.ten} (${l.ma})</option>`;
+    });
+    document.getElementById('hwTargetClass').innerHTML = classOpts;
+
+    openModal('modalAddHomework');
+}
+function addQuestionField() {
+    const qList = document.getElementById('qList');
+    const qIndex = qList.children.length;
+    
+    const div = document.createElement('div');
+    div.className = "mb-4 p-3 border rounded-4 bg-light shadow-sm question-item";
+    div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-primary">Câu hỏi số ${qIndex + 1}</span>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.question-item').remove()">
+                <i class="fa-solid fa-trash"></i> Xóa
+            </button>
+        </div>
+
+        <div class="row g-2 mb-2">
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Dạng câu hỏi:</label>
+                <select class="form-select form-select-sm q-type">
+                    <option value="text_to_image">1. Nhìn chữ chọn ảnh</option>
+                    <option value="text_to_audio">2. Nhìn chữ chọn âm thanh</option>
+                    <option value="image_to_text">3. Nhìn ảnh chọn chữ</option>
+                    <option value="image_to_audio">4. Nhìn ảnh chọn âm thanh</option>
+                    <option value="audio_to_text">5. Nghe âm thanh chọn chữ</option>
+                    <option value="audio_to_image">6. Nghe âm thanh chọn ảnh</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Nội dung câu hỏi:</label>
+                <input type="text" class="form-control form-control-sm q-text" placeholder="Nhập chữ câu hỏi...">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small fw-bold text-secondary">File chính (nếu có):</label>
+            <input type="file" class="form-control form-control-sm" accept="image/*,audio/*" onchange="convertFileWithPreview(this, 'main_${qIndex}', 'preview_main_${qIndex}')">
+            <input type="hidden" class="q-media" id="val_main_${qIndex}">
+            <div class="mt-2"><img id="preview_main_${qIndex}" src="" class="img-thumbnail d-none" style="max-height: 100px;"></div>
+        </div>
+
+        <label class="form-label small fw-bold text-orange">4 Ô đáp án (A, B, C, D) kèm xem trước ảnh:</label>
+        <div class="row g-2 mb-2">
+            ${['A', 'B', 'C', 'D'].map((letter, oIdx) => `
+            <div class="col-6 border p-2 rounded bg-white">
+                <div class="input-group input-group-sm mb-1">
+                    <span class="input-group-text fw-bold">${letter}</span>
+                    <input type="text" class="form-control opt-${letter.toLowerCase()}-text" placeholder="Đáp án ${letter}">
+                </div>
+                <input type="file" class="form-control form-control-sm" accept="image/*,audio/*" onchange="convertFileWithPreview(this, 'opt${letter}_${qIndex}', 'preview_opt${letter}_${qIndex}')">
+                <input type="hidden" class="opt-${letter.toLowerCase()}-media" id="val_opt${letter}_${qIndex}">
+                <div class="mt-2 text-center"><img id="preview_opt${letter}_${qIndex}" src="" class="img-thumbnail d-none" style="max-height: 80px; object-fit: contain;"></div>
+            </div>`).join('')}
+        </div>
+
+        <div>
+            <label class="form-label small fw-bold text-success">Đáp án đúng:</label>
+            <select class="form-select form-select-sm correct-index">
+                <option value="0">A đúng</option>
+                <option value="1">B đúng</option>
+                <option value="2">C đúng</option>
+                <option value="3">D đúng</option>
+            </select>
+        </div>
+    `;
+    qList.appendChild(div);
+}
+
+// Hàm hỗ trợ tải file và hiển thị ảnh xem trước ngay lập tức
+function convertFileWithPreview(inputElement, targetId, previewImgId) {
+    const file = inputElement.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById(`val_${targetId}`).value = e.target.result;
+        const previewEl = document.getElementById(previewImgId);
+        if (previewEl && file.type.startsWith('image/')) {
+            previewEl.src = e.target.result;
+            previewEl.classList.remove('d-none');
+        }
+        showToast('Đã tải và hiển thị ảnh xem trước!');
+    };
+    reader.readAsDataURL(file);
+}
+
+async function saveHomework() {
+    const title = document.getElementById('hwTitle').value;
+    const desc = document.getElementById('hwDesc').value;
+    const targetClass = document.getElementById('hwTargetClass').value;
+    
+    const questions = [];
+    document.querySelectorAll('.question-item').forEach(div => {
+        questions.push({
+            type: div.querySelector('.q-type').value,
+            q: div.querySelector('.q-text').value,
+            media: div.querySelector('.q-media').value,
+            options: [
+                { text: div.querySelector('.opt-a-text').value, media: div.querySelector('.opt-a-media').value },
+                { text: div.querySelector('.opt-b-text').value, media: div.querySelector('.opt-b-media').value },
+                { text: div.querySelector('.opt-c-text').value, media: div.querySelector('.opt-c-media').value },
+                { text: div.querySelector('.opt-d-text').value, media: div.querySelector('.opt-d-media').value }
+            ],
+            correct: parseInt(div.querySelector('.correct-index').value)
+        });
+    });
+
+    if (!title) { alert("Vui lòng nhập tiêu đề bài tập!"); return; }
+
+    const newHW = { id: 'HW_' + Date.now(), title, desc, targetClass, questions };
+    let hwList = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    hwList.push(newHW);
+
+    await cloudSave('adminHomeworkList', hwList); 
+    showToast('Đã lưu và đồng bộ bài tập thành công!');
+    closeModalSafe('modalAddHomework');
+    renderAdminHomeworkTable();
+}
+
+function renderAdminHomeworkTable() {
+    const hwList = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    let html = '';
+    
+    hwList.forEach((hw, idx) => {
+        const lop = lopList.find(l => l.ma === hw.targetClass);
+        const className = lop ? lop.ten : 'Tất cả các lớp';
+
+        html += `<tr>
+            <td>${hw.id}</td>
+            <td class="fw-bold text-primary">${hw.title}</td>
+            <td>${hw.questions.length} câu</td>
+            <td><span class="badge bg-info text-dark">${className}</span></td>
+            <td>
+                <button class="btn btn-sm btn-primary me-1 px-2 py-1 shadow-sm" onclick="openEditHomeworkModal('${hw.id}')"><i class="fa-solid fa-pen-to-square me-1"></i> Sửa</button>
+                <button class="btn btn-sm btn-success me-1 px-2 py-1 shadow-sm" onclick="openAdminViewResult('${hw.id}')"><i class="fa-solid fa-eye me-1"></i> Kết quả</button>
+                <button class="btn btn-sm btn-danger px-2 py-1 shadow-sm" onclick="deleteHomework(${idx})"><i class="fa-solid fa-trash me-1"></i> Xóa</button>
+            </td>
+        </tr>`;
+    });
+    const tbody = document.getElementById('adminHomeworkTableBody');
+    if (tbody) tbody.innerHTML = html || `<tr><td colspan="5" class="text-muted">Chưa có bài tập nào.</td></tr>`;
+}
+
+function deleteHomework(idx) {
+    if (confirm('Xóa bài tập này?')) {
+        let hwList = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+        hwList.splice(idx, 1);
+        cloudSave('adminHomeworkList', hwList);
+        renderAdminHomeworkTable();
+        showToast('Đã xóa bài tập!');
+    }
+}
+
+function openEditHomeworkModal(hwId) {
+    const hwList = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const hw = hwList.find(item => item.id === hwId);
+    if (!hw) return;
+
+    document.getElementById('editHwId').value = hw.id;
+    document.getElementById('editHwTitle').value = hw.title;
+    document.getElementById('editHwDesc').value = hw.desc || '';
+
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+    let classOpts = `<option value="ALL" ${hw.targetClass === 'ALL' ? 'selected' : ''}>--- TẤT CẢ CÁC LỚP ---</option>`;
+    lopList.forEach(l => {
+        classOpts += `<option value="${l.ma}" ${hw.targetClass === l.ma ? 'selected' : ''}>${l.ten} (${l.ma})</option>`;
+    });
+    document.getElementById('editHwTargetClass').innerHTML = classOpts;
+
+    let qHtml = '';
+    hw.questions.forEach((q, qIdx) => {
+        qHtml += `
+        <div class="mb-4 p-3 border rounded-4 bg-light shadow-sm edit-question-item">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-warning text-dark">Câu hỏi số ${qIdx + 1}</span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.edit-question-item').remove()"><i class="fa-solid fa-trash"></i> Xóa</button>
+            </div>
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Dạng câu hỏi:</label>
+                    <select class="form-select form-select-sm edit-q-type">
+                        <option value="text_to_image" ${q.type === 'text_to_image' ? 'selected' : ''}>1. Nhìn chữ chọn ảnh</option>
+                        <option value="text_to_audio" ${q.type === 'text_to_audio' ? 'selected' : ''}>2. Nhìn chữ chọn âm thanh</option>
+                        <option value="image_to_text" ${q.type === 'image_to_text' ? 'selected' : ''}>3. Nhìn ảnh chọn chữ</option>
+                        <option value="image_to_audio" ${q.type === 'image_to_audio' ? 'selected' : ''}>4. Nhìn ảnh chọn âm thanh</option>
+                        <option value="audio_to_text" ${q.type === 'audio_to_text' ? 'selected' : ''}>5. Nghe âm thanh chọn chữ</option>
+                        <option value="audio_to_image" ${q.type === 'audio_to_image' ? 'selected' : ''}>6. Nghe âm thanh chọn ảnh</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Nội dung câu hỏi:</label>
+                    <input type="text" class="form-control form-control-sm edit-q-text" value="${q.q || ''}">
+                </div>
+            </div>
+            <label class="form-label small fw-bold text-orange">4 Ô đáp án (A, B, C, D):</label>
+            <div class="row g-2 mb-2">
+                ${q.options.map((opt, oIdx) => {
+                    const letter = String.fromCharCode(65 + oIdx);
+                    // Bóc tách an toàn text và media từ dữ liệu cũ
+                    let textVal = '';
+                    let mediaVal = '';
+                    if (typeof opt === 'object' && opt !== null) {
+                        textVal = opt.text || '';
+                        mediaVal = opt.media || '';
+                    } else if (typeof opt === 'string') {
+                        textVal = opt;
+                    }
+
+                    return `
+                    <div class="col-6">
+                        <div class="input-group input-group-sm mb-1">
+                            <span class="input-group-text fw-bold">${letter}</span>
+                            <input type="text" class="form-control edit-opt-${oIdx}-text" value="${textVal}">
+                        </div>
+                        <input type="hidden" class="edit-opt-${oIdx}-media" id="edit_val_${hwId}_${qIdx}_${oIdx}" value="${mediaVal}">
+                        <input type="file" class="form-control form-control-sm" accept="image/*,audio/*" onchange="convertEditFileToBase64(this, '${hwId}_${qIdx}_${oIdx}')">
+                        ${mediaVal ? `<small class="text-success">Đã có sẵn file media</small>` : ''}
+                    </div>`;
+                }).join('')}
+            </div>
+            <div>
+                <label class="form-label small fw-bold text-success">Đáp án đúng:</label>
+                <select class="form-select form-select-sm edit-correct-index">
+                    <option value="0" ${q.correct === 0 ? 'selected' : ''}>A đúng</option>
+                    <option value="1" ${q.correct === 1 ? 'selected' : ''}>B đúng</option>
+                    <option value="2" ${q.correct === 2 ? 'selected' : ''}>C đúng</option>
+                    <option value="3" ${q.correct === 3 ? 'selected' : ''}>D đúng</option>
+                </select>
+            </div>
+        </div>`;
+    });
+
+    document.getElementById('editQList').innerHTML = qHtml;
+    openModal('modalEditHomework');
+}
+
+function convertEditFileToBase64(inputElement, targetKey) {
+    const file = inputElement.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById(`edit_val_${targetKey}`).value = e.target.result;
+        showToast('Đã cập nhật file!');
+    };
+    reader.readAsDataURL(file);
+}
+
+async function updateHomework() {
+    const hwId = document.getElementById('editHwId').value;
+    const title = document.getElementById('editHwTitle').value;
+    const desc = document.getElementById('editHwDesc').value;
+    const targetClass = document.getElementById('editHwTargetClass').value;
+    
+    const questions = [];
+    document.querySelectorAll('.edit-question-item').forEach(div => {
+        questions.push({
+            type: div.querySelector('.edit-q-type').value,
+            q: div.querySelector('.edit-q-text').value,
+            media: '',
+            options: [
+                { text: div.querySelector('.edit-opt-0-text').value, media: div.querySelector('.edit-opt-0-media').value },
+                { text: div.querySelector('.edit-opt-1-text').value, media: div.querySelector('.edit-opt-1-media').value },
+                { text: div.querySelector('.edit-opt-2-text').value, media: div.querySelector('.edit-opt-2-media').value },
+                { text: div.querySelector('.edit-opt-3-text').value, media: div.querySelector('.edit-opt-3-media').value }
+            ],
+            correct: parseInt(div.querySelector('.edit-correct-index').value)
+        });
+    });
+
+    let hwList = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const index = hwList.findIndex(item => item.id === hwId);
+    if (index !== -1) {
+        hwList[index] = { id: hwId, title, desc, targetClass, questions };
+        await cloudSave('adminHomeworkList', hwList);
+        showToast('Đã cập nhật bài tập thành công!');
+        closeModalSafe('modalEditHomework');
+        renderAdminHomeworkTable();
+    }
+}
+/* ================= XEM KẾT QUẢ BÀI TẬP CỦA HỌC SINH (ADMIN) ================= */
+
+function openAdminViewResult(hwId) {
+    const hwList = JSON.parse(localStorage.getItem('adminHomeworkList')) || [];
+    const hw = hwList.find(item => item.id === hwId);
+    if (!hw) return;
+
+    const titleEl = document.getElementById('adminViewHwTitle');
+    if (titleEl) {
+        titleEl.textContent = `Bài tập: ${hw.title}`;
+    }
+
+    const hsList = JSON.parse(localStorage.getItem('hocSinhList')) || [];
+    const lopList = JSON.parse(localStorage.getItem('lopHocList')) || [];
+
+    let resultHtml = '';
+    hsList.forEach(hs => {
+        if (hw.targetClass && hw.targetClass !== 'ALL' && hs.lopMa !== hw.targetClass) return;
+
+        const lop = lopList.find(l => l.ma === hs.lopMa);
+        const lopName = lop ? lop.ten : (hs.lopMa || 'Chưa xếp lớp');
+
+        const historyKey = `hw_history_${hs.ma}_${hw.id}`;
+        const myHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
+
+        let historyDetailStr = '';
+        if (myHistory.length > 0) {
+            myHistory.forEach((h, hIdx) => {
+                historyDetailStr += `<div class="small text-secondary mb-1">Lần ${hIdx + 1}: <b class="text-success">${h.score}</b> lúc <span class="text-muted">${h.time}</span></div>`;
+            });
+        } else {
+            historyDetailStr = `<span class="text-muted small italic">Chưa làm bài</span>`;
+        }
+
+        const lastScore = myHistory.length > 0 ? myHistory[myHistory.length - 1].score : '<span class="text-muted">Chưa làm</span>';
+
+        resultHtml += `<tr>
+            <td><span class="badge bg-secondary">${hs.ma}</span></td>
+            <td class="fw-bold text-primary text-start">${hs.ten}</td>
+            <td><span class="badge bg-info text-dark">${lopName}</span></td>
+            <td><span class="badge bg-warning text-dark">${myHistory.length} lần</span></td>
+            <td class="fw-bold">${lastScore}</td>
+            <td class="text-start" style="max-width: 300px; word-break: break-word;">${historyDetailStr}</td>
+        </tr>`;
+    });
+
+    const tbody = document.getElementById('adminResultTableBody');
+    if (tbody) {
+        tbody.innerHTML = resultHtml || `<tr><td colspan="6" class="text-muted py-3">Không có học sinh nào thuộc đối tượng của bài tập này.</td></tr>`;
+    }
+
+    openModal('modalAdminViewResult');
+}
 </script>
+<div class="modal fade" id="modalAddHomework" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-file-pen me-2"></i>Soạn Bài Tập Đa Dạng (6 Dạng Tương Tác)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tiêu đề bài tập:</label>
+                        <input type="text" class="form-control" id="hwTitle" placeholder="VD: Bài tập Tiếng Anh Unit 1...">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Giao cho lớp:</label>
+                        <select class="form-select border-primary fw-bold" id="hwTargetClass">
+                            <option value="ALL">--- TẤT CẢ CÁC LỚP ---</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Mô tả ngắn:</label>
+                        <input type="text" class="form-control" id="hwDesc" placeholder="Ghi chú cho học sinh...">
+                    </div>
+                </div>
+
+                <hr>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-orange m-0">Danh sách câu hỏi trắc nghiệm:</h6>
+                    <button type="button" class="btn btn-sm btn-success fw-bold" onclick="addQuestionField()">+ Thêm Câu Hỏi</button>
+                </div>
+                
+                <div id="qList" style="max-height: 50vh; overflow-y: auto; padding-right: 5px;"></div>
+
+                <div class="text-center mt-4 border-top pt-3">
+                    <button type="button" class="btn btn-orange px-5 py-2 fw-bold" onclick="saveHomework()">Lưu Bài Tập & Đồng Bộ Lớp</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalAdminViewResult" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-chart-line me-2"></i>Thống Kê Kết Quả Làm Bài Của Học Sinh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <h5 id="adminViewHwTitle" class="fw-bold text-primary mb-3">Bài tập: ---</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped text-center align-middle">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Mã HS</th>
+                                <th>Tên Học Sinh</th>
+                                <th>Lớp</th>
+                                <th>Số lần làm</th>
+                                <th>Điểm số (Lần gần nhất)</th>
+                                <th>Lịch sử chi tiết các lần làm</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminResultTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalEditHomework" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Bài Tập Về Nhà</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="editHwId">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tiêu đề bài tập:</label>
+                        <input type="text" class="form-control" id="editHwTitle">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Giao cho lớp:</label>
+                        <select class="form-select border-primary fw-bold" id="editHwTargetClass"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Mô tả ngắn:</label>
+                        <input type="text" class="form-control" id="editHwDesc">
+                    </div>
+                </div>
+
+                <hr>
+                <h6 class="fw-bold text-orange mb-3">Danh sách câu hỏi:</h6>
+                <div id="editQList" style="max-height: 50vh; overflow-y: auto; padding-right: 5px;"></div>
+
+                <div class="text-center mt-4 border-top pt-3">
+                    <button type="button" class="btn btn-orange px-5 py-2 fw-bold" onclick="updateHomework()">Cập Nhật Thay Đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
